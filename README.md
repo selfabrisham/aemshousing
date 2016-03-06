@@ -64,9 +64,9 @@ additional effort to record.
 A Google Sheets of month end account values.
 
 #### Transactions
-Mint.com transaction can be 'downloaded' using the following code in the developer console of a typical authenticated session:
+[Mint](https://mint.com) transaction can be "downloaded" using the following code in the developer console of a typical authenticated browser session (only tested on [Chrome](https://www.google.com/chrome/browser/desktop/)):
 
-```
+```javascript
 // Constants
 L = 100;
 transactions = [];
