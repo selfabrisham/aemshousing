@@ -112,7 +112,7 @@ copy(transactions)
 
 #### Paychecks
 This is the most difficult one... You will have to get dirty and roll your own custom implementation. Assuming you get a `pdf` paycheck, you must create a  `pdf` parser.  The library has an example of this and provides a framework to make is easier.
-
+Good Luck :)
 
 ## License
 [MIT](https://github.com/tmthydvnprt/pfcompute/blob/master/LICENSE)
