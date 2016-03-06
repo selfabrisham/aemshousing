@@ -8,10 +8,23 @@ Personal Finance library for the Computationally Curious.
 While this library may be used internally to other software, it was intended to be used in a interactive computing fashion with software such as [jupyter](https://jupyter.org).  This type of environment, along with the library, provides a quick and easy way to explore complex data, relations and algorithms.
 
 ### Data Sources
-Since `pfcompute` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. [mint](https://mint.com), [personalcapital](https://personalcapital.com), [ynab](https://youneedabudget.com), [yodlee](https://yodlee.com), a bank, etc.).  It is left up to the user to obtain this data however they wish.  Below are some data collection [suggestions](#data-suggestions).
+Since `pfcompute` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. [mint](https://mint.com), [personalcapital](https://personalcapital.com), [ynab](https://youneedabudget.com), [yodlee](https://yodlee.com), a bank, etc.).  It is left up to the user to obtain this data however they wish.  There are three main data sources assumed to exist by the library: Accounts, Transactions, and Paychecks.  They can really be in any format (`xls(x)`, `csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  The data [format](#data-format) and some collection [ideas](#data-ideas) are described below.
 
-There are three main data sources assumed to exist by the library: Accounts, Transactions, and Paychecks.  They can really
-be in any format (`csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  It eventually needs to arrive to the library as [pandas](http://pandas.pydata.org) with the following format:
+## Features
+
+
+
+## Examples
+
+```py
+import pfcompute as pf
+
+
+```
+
+<a name="data-format"></a>
+## Data Format
+The format needed by `pfcompute` for each set of data is [pandas](http://pandas.pydata.org) `DataFrame`s with the following format:
 
 1. Accounts
 
@@ -48,7 +61,7 @@ be in any format (`csv`, `json`, `pdf`) as long as the user writes some method t
 
     *Can have multiple paychecks per date*
 
-Optional data sources include: Credit Limits and Miscellaneous.  These can be useful to keep track of but may require
+Optional data sets include: Credit Limits and Miscellaneous.  These can be useful to keep track of but may require
 additional effort to record.
 
 4. Credit Limits
@@ -57,7 +70,7 @@ additional effort to record.
 5. Miscellaneous
     DataFrame of whatever Miscellaneous data is applicable with Date index and Field/Account columns, similar to Account data
 
-<a name="data-suggestions"></a>
+<a name="data-ideas"></a>
 ### Data Collections Ideas
 
 #### Account Balances
@@ -100,15 +113,6 @@ copy(transactions)
 #### Paychecks
 This is the most difficult one... You will have to get dirty and roll your own custom implementation. Assuming you get a `pdf` paycheck, you must create a  `pdf` parser.  The library has an example of this and provides a framework to make is easier.
 
-## Features
-
-## Examples
-
-```py
-import pfcompute as pf
-
-
-```
 
 ## License
 [MIT](https://github.com/tmthydvnprt/pfcompute/blob/master/LICENSE)
