@@ -14,7 +14,7 @@ Since `pfcompute` does not aggregate or collect it's own data, it requires data 
 The following checklist describes the current (`[x]`) and future (`[ ]`) capabilities of `pfcompute`:
 
 - [x] Data input
-    - [x] import convenience functions
+    - [x] Import convenience functions
     - [x] Overridable data cleaning functions
     - [x] Generic paycheck import from folder of `pdf`s (user must write internal parser)
     - [x] User defines account & transaction categories
@@ -43,7 +43,6 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
     - [x] Time series plotting
     - [x] Probability Distribution Function (PDF) plotting
 - [ ] Report Generation
-
 
 ## Examples
 
