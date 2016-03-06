@@ -11,7 +11,38 @@ While this library may be used internally to other software, it was intended to 
 Since `pfcompute` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. [mint](https://mint.com), [personalcapital](https://personalcapital.com), [ynab](https://youneedabudget.com), [yodlee](https://yodlee.com), a bank, etc.).  It is left up to the user to obtain this data however they wish.  There are three main data sources assumed to exist by the library: Accounts, Transactions, and Paychecks.  They can really be in any format (`xls(x)`, `csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  The data [format](#data-format) and some collection [ideas](#data-ideas) are described below.
 
 ## Features
+The following checklist describes the current (`[x]`) and future (`[ ]`) capabilities of `pfcompute`:
 
+- [x] Data input
+    - [x] import convenience functions
+    - [x] Overridable data cleaning functions
+    - [x] Generic paycheck import from folder of `pdf`s (user must write internal parser)
+    - [x] User defines account & transaction categories
+- [x] Generate financial statements
+    - [x] Balance sheet
+    - [x] Income statement
+    - [x] Cashflow statement
+    - [x] Account Summary
+- [x] Net worth analysis
+    - [x] Net worth calculator
+    - [x] Growth calculator & analyzer
+    - [x] Milestone status
+- [ ] Account Forecasting
+    - [x] :pencil: Autoregressive integrated moving average (ARIMA) modeling
+    - [x] :pencil: Autoregressive integrated moving average (ARIMA) forecasting
+    - [x] :pencil: Maximum Likelihood Estimator (MLE) distribution modeling
+    - [x] :pencil: Monte Carlo forecasting
+- [x] Assumption Based Forecasting
+    - [x] Assumption (savings rate, expense, growth) modeler
+- [ ] Investing Forecasting
+    - [ ] Index (e.g. [Vanguard](https://investor.vanguard.com/home/)) based asset data
+    - [ ] Asset allocation correlation
+    - [ ] Asset allocation modeling
+    - [ ] Monte Carlo Asset forecasting
+- [ ] Visualization
+    - [x] Time series plotting
+    - [x] Probability Distribution Function (PDF) plotting
+- [ ] Report Generation
 
 
 ## Examples
