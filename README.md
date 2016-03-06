@@ -2,40 +2,46 @@
 Personal Finance library for the Computationally Curious.
 
 ## Description
-`pfcompute` is a python library for computationally exploring your personal finance.  The library provides a computing environment with data structures, common equations/algorithms and convenience functions to calculate, analyze and visualize existing personal finance data. It is *not* meant to be a full service financial app or replace any software used to manage personal finances.  It does *not* collect data. However, once data is provided, it allows a much larger degree of freedom in processing and analyzing financial data than typical personal finance apps supply.
+`pfcompute` is a python library for computationally exploring personal finance.  The library provides a computing environment with data structures, common equations/algorithms and convenience functions to calculate, analyze and visualize existing personal finance data. It is *not* meant to be a full service financial app or replace any software used to manage personal finances.  It does *not* collect data. However, once data is provided, it allows a much larger degree of freedom in processing and analyzing financial data than typical personal finance apps supply.
 
 ### Interactive Computing
-While this library may be used internally to other software, it was intended to be used in a interactive computing fashion with software such as [jupyter](https://jupyter.org).  This type of environment along with the library provide a quick and easy way to explore complex data, relations or algorithms.
+While this library may be used internally to other software, it was intended to be used in a interactive computing fashion with software such as [jupyter](https://jupyter.org).  This type of environment, along with the library, provides a quick and easy way to explore complex data, relations and algorithms.
 
 ### Data Sources
-Since `pfcompute` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. mint.com, personalcapital.com, ynab.com, yodlee.com, a bank, etc.).  It is left up to the user to obtain this data however they wish.  Below are some data collection [suggestions](#data-suggestions).
+Since `pfcompute` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. [mint](https://mint.com), [personalcapital](https://personalcapital.com), [ynab](https://youneedabudget.com), [yodlee](https://yodlee.com), a bank, etc.).  It is left up to the user to obtain this data however they wish.  Below are some data collection [suggestions](#data-suggestions).
 
 There are three main data sources assumed to exist by the library: Accounts, Transactions, and Paychecks.  They can really
 be in any format (`csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  It eventually needs to arrive to the library as [pandas](http://pandas.pydata.org) with the following format:
 
 1. Accounts
-    * DataFrame of account balances with Date index and (Category, Account Name) multi-columns:
+    DataFrame of account balances with Date index and (Category, Account Name) multi-columns:
 
+    ```
     |        | Cash                         | Investment               | Credit   | Loan      |
     | Date   | Ally Checking | Ally Savings | LendingClub | Betterment | BofA     | Student   |
     | Oct 15 |       1000.00 |  5000.00     |    10000.00 |  30000.00  | -1000.00 | -10000.00 |
+    ```
 
     *Date could be any period... however, currently assumes month end and one row per date.*
 
 2. Transactions
-    * DataFrame of transaction details with Date index and Field name columns:
+    DataFrame of transaction details with Date index and Field name columns:
 
+    ```
     | Date       |  Amount  | Account       | Category | Label |
     | 2015-10-15 |  2000.00 | Ally Checking | Paycheck |    {} |
     | 2015-10-15 | -1000.00 | Ally Checking | Rent     |    {} |
+    ```
 
     *Can have multiple transactions per date*
 
 3. Paychecks
-    * DataFrame of paycheck details with Date index and Field name columns:
+    DataFrame of paycheck details with Date index and Field name columns:
 
+    ```
     | Date       |  Total Gross | Tax    | Pre Tax Deductions | Post Tax Deductions | Net Pay |
     | 2015-10-15 |  2000.00     | 500.00 |             500.00 |                 0.0 | 1000.00 |
+    ```
 
     *Can have multiple paychecks per date*
 
@@ -43,10 +49,10 @@ Optional data sources include: Credit Limits and Miscellaneous.  These can be us
 additional effort to record.
 
 4. Credit Limits
-    * DataFrame of account limits with Date index and (Category, Account Name) multi-columns, similar to Account data.
+    DataFrame of account limits with Date index and (Category, Account Name) multi-columns, similar to Account data.
 
 5. Miscellaneous
-    * DataFrame of whatever Miscellaneous data is applicable with Date index and Field/Account columns, similar to Account data
+    DataFrame of whatever Miscellaneous data is applicable with Date index and Field/Account columns, similar to Account data
 
 <a name="data-suggestions"></a>
 ### Data Collections Ideas
