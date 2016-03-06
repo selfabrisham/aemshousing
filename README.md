@@ -14,6 +14,7 @@ There are three main data sources assumed to exist by the library: Accounts, Tra
 be in any format (`csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  It eventually needs to arrive to the library as [pandas](http://pandas.pydata.org) with the following format:
 
 1. Accounts
+
     DataFrame of account balances with Date index and (Category, Account Name) multi-columns:
 
     ```
@@ -25,6 +26,7 @@ be in any format (`csv`, `json`, `pdf`) as long as the user writes some method t
     *Date could be any period... however, currently assumes month end and one row per date.*
 
 2. Transactions
+
     DataFrame of transaction details with Date index and Field name columns:
 
     ```
@@ -36,6 +38,7 @@ be in any format (`csv`, `json`, `pdf`) as long as the user writes some method t
     *Can have multiple transactions per date*
 
 3. Paychecks
+
     DataFrame of paycheck details with Date index and Field name columns:
 
     ```
