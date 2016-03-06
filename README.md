@@ -9,6 +9,7 @@ While this library may be used internally to other software, it was intended to 
 
 ### Data Sources
 Since `pfcompute` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. [mint](https://mint.com), [personalcapital](https://personalcapital.com), [ynab](https://youneedabudget.com), [yodlee](https://yodlee.com), a bank, etc.).  It is left up to the user to obtain this data however they wish.  There are three main data sources assumed to exist by the library:
+
 1. Accounts
 2. Transactions
 3. Paychecks.  
