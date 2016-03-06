@@ -12,7 +12,7 @@ Since `pfcompute` does not aggregate or collect it's own data, it requires data 
 
 1. Accounts
 2. Transactions
-3. Paychecks.  
+3. Paychecks
 
 They can really be in any format (`xls(x)`, `csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  The data [format](#data-format) and some collection [ideas](#data-ideas) are described below.
 
