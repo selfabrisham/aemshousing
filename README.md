@@ -132,7 +132,7 @@ function getNextData() {
 getNextData();
 ```
 
-This `javascript` object will need to be copied into a text file and saved (eg. `transaction.json`).
+This `javascript` object will need to be copied into a text file and saved (e.g. `transaction.json`).
 You can copy a console variable with the following code, then paste (`cmd+v` || `ctrl+v`) into a text editor:
 
 ```js
