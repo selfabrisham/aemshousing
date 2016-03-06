@@ -58,6 +58,8 @@ import pfcompute as pf
 
 ```
 
+View this [example notebook](#) to see more detail.
+
 <a name="data-format"></a>
 ## Data Format
 The format needed by `pfcompute` for each set of data is [pandas](http://pandas.pydata.org) `DataFrame`s with the following format:
