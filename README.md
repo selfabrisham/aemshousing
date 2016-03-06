@@ -28,8 +28,8 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
     - [x] Growth calculator & analyzer
     - [x] Milestone status
 - [ ] Account Forecasting
-    - [x] :pencil: Autoregressive integrated moving average (ARIMA) modeling
-    - [x] :pencil: Autoregressive integrated moving average (ARIMA) forecasting
+    - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) modeling
+    - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) forecasting
     - [x] :pencil: Maximum Likelihood Estimator (MLE) distribution modeling
     - [x] :pencil: Monte Carlo forecasting
 - [x] Assumption Based Forecasting
