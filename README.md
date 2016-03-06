@@ -17,7 +17,7 @@ be in any format (`csv`, `json`, `pdf`) as long as the user writes some method t
 
     DataFrame of account balances with Date index and (Category, Account Name) multi-columns:
 
-    ```
+    ```csv
     |        | Cash                         | Investment               | Credit   | Loan      |
     | Date   | Ally Checking | Ally Savings | LendingClub | Betterment | BofA     | Student   |
     | Oct 15 |       1000.00 |  5000.00     |    10000.00 |  30000.00  | -1000.00 | -10000.00 |
@@ -29,7 +29,7 @@ be in any format (`csv`, `json`, `pdf`) as long as the user writes some method t
 
     DataFrame of transaction details with Date index and Field name columns:
 
-    ```
+    ```csv
     | Date       |  Amount  | Account       | Category | Label |
     | 2015-10-15 |  2000.00 | Ally Checking | Paycheck |    {} |
     | 2015-10-15 | -1000.00 | Ally Checking | Rent     |    {} |
@@ -41,7 +41,7 @@ be in any format (`csv`, `json`, `pdf`) as long as the user writes some method t
 
     DataFrame of paycheck details with Date index and Field name columns:
 
-    ```
+    ```csv
     | Date       |  Total Gross | Tax    | Pre Tax Deductions | Post Tax Deductions | Net Pay |
     | 2015-10-15 |  2000.00     | 500.00 |             500.00 |                 0.0 | 1000.00 |
     ```
@@ -90,21 +90,21 @@ getNextData();
 ```
 
 This `javascript` object will need to be copied into a text file and saved (eg. `transaction.json`).
-You can copy a console variable with the following code, then paste (cmd+v or ctrl+v) into a text editor:
+You can copy a console variable with the following code, then paste (`cmd+v` || `ctrl+v`) into a text editor:
 
-```
-// Send to clipboard (only tested in Chrome)
+```js
+// Send to clipboard
 copy(transactions)
 ```
 
 #### Paychecks
-This is the most difficult one... You will have to get dirty and roll your own custom implementation. Assuming you get a `pdf` paycheck, you must create a  `pdf` parser.  The library has an example of this and provide a framework to make is easier.
+This is the most difficult one... You will have to get dirty and roll your own custom implementation. Assuming you get a `pdf` paycheck, you must create a  `pdf` parser.  The library has an example of this and provides a framework to make is easier.
 
 ## Features
 
 ## Examples
 
-```
+```py
 import pfcompute as pf
 
 
