@@ -22,27 +22,29 @@ import datetime
 import numpy as np
 import pandas as pd
 
+from pf.constants import DAYS_IN_YEAR
+
 ################################################################################################################################
 # Helper Functions
 ################################################################################################################################
-def parse_month_year_end(my):
+def parse_month_year_end(month_year=''):
     """Parse month/year to pandas datetimeindex at month's end"""
-    m, y = [int(x) for x in my.split('/')]
-    m1 = (m + 1) if m < 12 else 1
-    y1 = (y + 1) if m > 11 else y
-    return pd.to_datetime(datetime.date(y1, m1, 1) - datetime.timedelta(days=1))
+    month, year = [int(x) for x in month_year.split('/')]
+    month0 = (month + 1) if month < 12 else 1
+    year0 = (year + 1) if month > 11 else year
+    return pd.to_datetime(datetime.date(year0, month0, 1) - datetime.timedelta(days=1))
 
-def parse_month_day_dates(x=''):
+def parse_month_day_dates(month_day=''):
     """Parse dates that only contain month/day for dates in current year"""
     try:
-        y = pd.to_datetime(x)
+        year = pd.to_datetime(month_day)
     except pd.tslib.OutOfBoundsDatetime:
-        y = pd.to_datetime('{} {}'.format(x, datetime.datetime.now().year))
-    return y
+        year = pd.to_datetime('{} {}'.format(month_day, datetime.datetime.now().year))
+    return year
 
-def get_age(d, bday=datetime.datetime(1989, 3, 27)):
+def get_age(date=datetime.datetime.now(), bday=datetime.datetime(1989, 3, 27)):
     """Calculate personal age given birthday"""
-    return np.round((d - bday).days / DAYS_IN_YEAR, 2)
+    return np.round((date - bday).days / DAYS_IN_YEAR, 2)
 
 def f2as(x=0.0):
     """Format number to accounting string"""

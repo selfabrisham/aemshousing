@@ -18,8 +18,14 @@ credits    :
 
 """
 
+import io
+import datetime
+import numpy as np
+import pandas as pd
 import matplotlib
 import matplotlib.patches as mpatches
+
+from pf.util import f2as
 
 ################################################################################################################################
 # Plotting functions
@@ -41,7 +47,7 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
     # Plot
     if stacked:
         smoothdata[smoothdata < 0] = 0
-    ax = smoothdata.plot(kind='area', stacked=stacked, figsize=(16.0,8.0))
+    ax = smoothdata.plot(kind='area', stacked=stacked, figsize=(16.0, 8.0))
 
     # Set axis limits
     matplotlib.pyplot.xlim([data.index[0] - pd.DateOffset(months=1), data.index[-1] + pd.DateOffset(months=1)])
@@ -78,7 +84,7 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
     ax.set_ylabel('')
     ax.set_xlabel('')
 
-    stepSize = 0.01 * (data[columns].max().max() - data[columns].min().min())
+    step_size = 0.01 * (data[columns].max().max() - data[columns].min().min())
 
     # Get Datapoints
     if datapoints:
@@ -92,18 +98,18 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
         ]).reset_index().drop_duplicates().sort(0, inplace=False)
 
         # Set Text
-        annBB = []
+        ann_bb = []
 
-        # for i, (c, x, y) in enumerate(datapoints.values):
-        for i, (c, x, y) in enumerate(sorted(datapoints.values, key=lambda x: x[2])):
+        # Loop thru datapoints
+        for c, x, y in sorted(datapoints.values, key=lambda x: x[2]):
             if True: # y != 0:
                 xyloc = (x, y)
 
                 ax.scatter(x - pd.DateOffset(months=1), y, color=colors[columns.index(c)])
 
                 # If inside another annotation spread
-                while any([bb.contains(*ax.transData.transform((ax.convert_xunits(xyloc[0]), xyloc[1]))) for bb in annBB]):
-                    xyloc = (xyloc[0], xyloc[1] + stepSize)
+                while any([bb.contains(*ax.transData.transform((ax.convert_xunits(xyloc[0]), xyloc[1]))) for bb in ann_bb]):
+                    xyloc = (xyloc[0], xyloc[1] + step_size)
 
                 # Annotate the datapoint
                 ann = ax.annotate(
@@ -119,15 +125,15 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
                 ax.figure.canvas.draw()
                 # Growth bounding box by 2%
                 bb = ann.get_window_extent()
-                bbNew = matplotlib.transforms.Bbox(bb.get_points() * np.array([[0.98,0.98], [1.02,1.02]]))
+                bb_new = matplotlib.transforms.Bbox(bb.get_points() * np.array([[0.98, 0.98], [1.02, 1.02]]))
                 # Log bounding box
-                annBB.append(bbNew)
+                ann_bb.append(bb_new)
 
     ax.legend(loc='upper center', ncol=3, handles=[
         mpatches.Patch(
-                edgecolor=colors[columns.index(c)],
-                facecolor=matplotlib.colors.hex2color(colors[columns.index(c)]) + (0.5,),
-                label=c
+            edgecolor=colors[columns.index(c)],
+            facecolor=matplotlib.colors.hex2color(colors[columns.index(c)]) + (0.5,),
+            label=c
         ) for c in columns
     ])
 
