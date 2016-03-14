@@ -52,13 +52,17 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
 
 ## Examples
 
+### Code Usage
+
 ```py
 import pfcompute as pf
 
 
 ```
 
-View this [example notebook](#) to see more detail.
+### Notebooks
+
+View the [notebooks](https://github.com/tmthydvnprt/pfcompute/tree/master/notebooks#notebooks) to see more detail.
 
 <a name="data-format"></a>
 ## Data Format
