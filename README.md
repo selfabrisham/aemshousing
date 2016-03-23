@@ -158,7 +158,7 @@ This is the most difficult one... You will have to get dirty and roll your own c
 Good Luck :)
 
 ## Dependencies
-Generally, `pfcompute` is intended to be used within the [anaconda distribution]() and a few other libraries (i.e. [`tabulate`]()).
+Generally, and for *code-to-be*, `pfcompute` is intended to be used within the [anaconda distribution](https://www.continuum.io/why-anaconda) and its [packages](https://docs.continuum.io/anaconda/pkg-docs) plus a few other libraries (i.e. [`tabulate`](), [`pdfminer`]()).
 
 Specifically, it currently uses:
 
