@@ -51,6 +51,9 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
 - [ ] Report Generation
     - [ ] Annual
     - [ ] Monthly
+- [ ] Example Average Data (Useful for Comparisons)
+    - [x] Extract personal finance data from [FRED](https://research.stlouisfed.org/fred2/downloaddata/)
+    - [ ] Create semi-random personal finance models
 
 ## Examples
 
