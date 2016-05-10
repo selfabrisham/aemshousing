@@ -18,8 +18,21 @@ credits    :
 
 """
 
+import re
+import glob
+import pandas as pd
+
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfpage import PDFPage, PDFTextExtractionNotAllowed
+from pdfminer.converter import TextConverter
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.layout import LAParams
+
+from pf.constants import DATE_RE
+
 ################################################################################################################################
-# Data Input Functions
+# Account Functions
 ################################################################################################################################
 def clean_accounts(accounts=None):
     """
@@ -36,7 +49,7 @@ def read_in_accounts(filepath=''):
 
     Example:
     ```
-    accounts, limits, loan = read_in_accounts('/path/to/estate.xlsx')
+    accounts, limits, loan, taxes = read_in_accounts('/path/to/estate.xlsx')
     ```
     """
 
@@ -67,6 +80,9 @@ def read_in_accounts(filepath=''):
 
     return (accounts, limits, loan, taxes)
 
+################################################################################################################################
+# Transaction Functions
+################################################################################################################################
 def clean_transactions(transactions=None):
     """
     Cleans transaction data at the end of `read_in_transactions()`, this will always need to be overriden by the user.
@@ -121,3 +137,251 @@ def read_in_transactions(filepath=''):
     transactions = clean_transactions(transactions)
 
     return transactions
+
+################################################################################################################################
+# Paycheck Functions
+################################################################################################################################
+def text2listoflists(text=''):
+    """
+    Convert text to list of lists.
+    May need to be overriden by user, but it is suggested the use this format and override `paycheck_parser()`.
+    """
+
+    # Splits text on lines and then splits line on multiple spaces, ignoring empty lines
+    listoflists = [
+        [
+            cell.strip()
+                for cell in line.split('  ')
+                    if cell.strip() != ''
+        ]
+            for line in text.split('\n')
+    ]
+    # Remove empty lists or 'cells'
+    listoflists = [
+        p for p in listoflists
+            if p and p != ['']
+    ]
+
+    # Parse floats if 'cell' only contains number
+    for rownum, row in enumerate(listoflists):
+        for colnum, col in enumerate(row):
+            try:
+                listoflists[rownum][colnum] = float(col.replace(',', ''))
+            except:
+                pass
+
+    return listoflists
+
+def paycheck_parser(paychecks_dict=None):
+    """
+    User defined function to convert dictonary of paycheck list of lists into a DataFrame. You could always replace of the whole function or you can use the default one as a starting point.  This fuction is called from within `read_in_paychecks()`.
+
+    Necessary user defined parts are sectioned off with `#####`.
+
+    """
+
+    # User Defined Constants like precompiled regex
+    ############################################################################################################################
+    BASERATE_RE = re.compile(r'(.*) Base Rate:')
+    ############################################################################################################################
+
+    # Loop thru dictionary (these lines are generic)
+    paychecks = []
+    for date, paycheck_lists in paychecks_dict.items():
+
+        # Parse data into dictionary of 'fields'
+        paycheck_fields = {}
+
+        # User Defined parsing 'flags' (usefull to have different parsing logic for different sections)
+        # and internal or intermediate variables (usefull for saving data across rows without putting in final dictionary)
+        ########################################################################################################################
+        in_earnings = False
+        in_deductions = False
+        baserate = ''
+        ########################################################################################################################
+
+        # Process each row of paycheck
+        for row in paycheck_lists:
+
+            # User Defined Parser Logic, this will be totally dependent on the format of your paycheck pdf... good luck!
+            ####################################################################################################################
+            # If inside earnings and tax tables
+            if in_earnings:
+                # Find string cells, these represent the field keys (names), the floats represent the field values
+                stringindex = np.array([i for i, cell in enumerate(row) if isinstance(cell, str)])
+
+                if len(row) > 1 and row[0] == 'Total:':
+                    if len(stringindex) == 2:
+                        stringdiff = stringindex[1] - stringindex[0]
+                        if stringdiff == 4:
+                            paycheck_fields[row[stringindex[0]].replace(':', '') + ' Earnings'] = row[2]
+                            paycheck_fields[row[stringindex[1]].replace(':', '') + ' Tax'] = -row[stringindex[1] + 1]
+                        if stringdiff == 3:
+                            paycheck_fields[row[stringindex[0]].replace(':', '') + ' Earnings'] = row[1]
+                            paycheck_fields[row[stringindex[1]].replace(':', '') + ' Tax'] = -row[stringindex[1] + 1]
+
+                    # If total row appears, exit earnings and tax table
+                    in_earnings = False
+                else:
+                    # If there are two columns, get the data
+                    if len(stringindex) == 2:
+                        stringdiff = stringindex[1] - stringindex[0]
+                        if stringdiff == 4:
+                            paycheck_fields[row[0]] = row[2]
+                            paycheck_fields[row[4]] = -row[5]
+                        elif stringdiff == 3:
+                            paycheck_fields[row[0]] = row[1]
+                            paycheck_fields[row[3]] = -row[4]
+                        elif stringdiff == 2:
+                            paycheck_fields[row[2]] = -row[3]
+                    # If single column get tax
+                    else:
+                        paycheck_fields[row[0]] = -row[1]
+
+            # If inside deduction tables
+            elif in_deductions:
+                # Find string cells
+                stringindex = np.array([i for i, cell in enumerate(row) if isinstance(cell, str)])
+                # If there are two columns, get the data
+                if len(stringindex) == 3:
+                    stringdiff1 = stringindex[1] - stringindex[0]
+                    stringdiff2 = stringindex[2] - stringindex[1]
+                    if row[0] == 'Total:':
+                        if stringdiff1 > 2:
+                            paycheck_fields['Total Before Tax'] = -row[stringindex[0] + 1]
+                        if stringdiff2 > 2:
+                            paycheck_fields['Total After Tax'] = -row[stringindex[1] + 1]
+                        if (len(row) - stringindex[2]) > 2:
+                            paycheck_fields['Total Other Tax'] = -row[stringindex[2] + 1]
+                        # If total row appears, exit earnings and tax table
+                        in_deductions = False
+                    else:
+                        if stringdiff1 > 2:
+                            paycheck_fields[row[stringindex[0]]] = -row[stringindex[0] + 1]
+                        if stringdiff2 > 2:
+                            paycheck_fields[row[stringindex[1]]] = -row[stringindex[1] + 1]
+                        if (len(row) - stringindex[2]) > 2:
+                            paycheck_fields[row[stringindex[2]]] = -row[stringindex[2] + 1]
+
+                elif len(stringindex) == 2:
+                    stringdiff = stringindex[1] - stringindex[0]
+                    if stringdiff == 3:
+                        paycheck_fields[row[0]] = -row[1]
+                        if len(row) == 5:
+                            paycheck_fields[row[3]] = -row[4]
+                    elif stringdiff == 2:
+                        paycheck_fields[row[2]] = -row[3]
+                # If single column get current (3 cells)
+                else:
+                    paycheck_fields[row[0]] = -row[1]
+
+            # Regular parsing
+            else:
+                baserate_search = BASERATE_RE.search(str(row[0]))
+                # Read Base Rate
+                if baserate_search:
+                    baserate = baserate_search.groups()[0]
+                elif len(row) > 0 and isinstance(row[0], float):
+                    paycheck_fields['Base Rate'] = row[0] * 80.0 if baserate == 'Hourly' else row[0]
+                # Read Check Date
+                elif len(row) > 1 and row[1] == 'Check Date:':
+                    paycheck_fields['Date'] = pd.to_datetime(row[2])
+                # Read Tax Categories
+                elif len(row) > 4 and row[0] == 'Current':
+                    paycheck_fields['Total Gross'] = row[1]
+                    paycheck_fields['Fed Taxable Gross'] = row[2]
+                    paycheck_fields['OASDI Gross'] = row[3]
+                    paycheck_fields['MEDI Gross'] = row[4]
+                    paycheck_fields['Net Pay'] = row[5]
+                # Enter Earnings and Tax Tables
+                elif len(row) > 0 and row[0] == 'Earnings':
+                    in_earnings = True
+                # Enter Earnings and Tax Tables
+                elif len(row) > 0 and row[0] == 'Description':
+                    in_deductions = True
+            ####################################################################################################################
+
+        # Store paycheck fields in list
+        paychecks.append(paycheck_fields)
+
+    # Convert list of paycheck field dictionary to DataFrame
+    paycheck_df = pd.DataFrame(paychecks).set_index('Date')
+
+    # Up until now paychecks are not necessarilly read or parsed in chronological order so sort chronologically
+    paycheck_df = paycheck_df.sort_index()
+
+    return paycheck_df
+
+def read_in_paychecks(filepaths='', password='', parser=paycheck_parser):
+    """
+    Read in all the paychecks from a directory full of PDFs and returns DataFrame. If a password is supplied encrypted PDFs CAN
+    be read. PDFs are converted to text lines, which are assumed to be mostly tabular and converted to lists of lists using
+    multiple spaces as elimiters. Since PDFs are unstructured the parsing function will almost definetly need to be overriden
+    by the user.
+
+    Note:
+    Assumes PDF file names contain date.
+
+    Example:
+    ```
+    paychecks = read_in_paychecks('/path/to/paycheck/directory/*.pdf', password='secret', parser=paycheck_parser)
+    ```
+    """
+
+    # Get PDFs from directory
+    paycheckfiles = glob.glob(filepaths)
+
+    # Read in paycheck data to dictionaryw
+    paycheck_dict = {}
+    for paycheckfile in paycheckfiles:
+
+        # Open a PDF file
+        fp = open(paycheckfile, 'rb')
+        # Get the date
+        date = DATE_RE.findall(paycheckfile)[0]
+
+        # Create string to put PDF
+        output = cStringIO.StringIO()
+
+        # Create a PDF parser object associated with the file object.
+        pdfparser = PDFParser(fp)
+
+        # Create a PDF document object that stores the document structure. Supply the password for initialization.
+        document = PDFDocument(pdfparser, password)
+
+        # Check if the document allows text extraction. If not, abort.
+        if not document.is_extractable:
+            raise PDFTextExtractionNotAllowed
+
+        # Create a PDF resource manager object that stores shared resources.
+        manager = PDFResourceManager()
+
+        # Create a PDF converter object.
+        converter = TextConverter(manager, output, laparams=LAParams())
+
+        # Create a PDF interpreter object.
+        interpreter = PDFPageInterpreter(manager, converter)
+
+        # Process each page contained in the document.
+        pages = list(PDFPage.create_pages(document))
+        interpreter.process_page(pages[0])
+
+        # Get text
+        text = output.getvalue()
+
+        # Close up file objects
+        pdfparser.close()
+        fp.close()
+        converter.close()
+        output.close()
+
+        # Convert to list of lists
+        paycheck_lists = text2listoflists(text)
+
+        # Add to dictionary
+        paycheck_dict[date] = paycheck_lists
+
+    # Parse paycheck data with user defined function
+    paycheck_df = parser(paycheck_dict)
+
+    return paycheck_df
