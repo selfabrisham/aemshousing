@@ -130,7 +130,7 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     period = str(period)
 
     # Convert to Statement DataFrame
-    cashflow = pd.DataFrame(cashflow_dict, columns=['$'])
+    cashflow = pd.DataFrame(cashflow, columns=['$'])
     cashflow.index.names = ['Category', 'Type', 'Item']
 
     # Calculate Net
