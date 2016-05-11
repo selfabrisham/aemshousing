@@ -23,6 +23,112 @@ import pandas as import pd
 ################################################################################################################################
 # Financial Statements
 ################################################################################################################################
+def balance_sheet(accounts=None, category_dict=None):
+    """
+    Calculate daily balances of grouped assets/liabilities based on `category_dict`s from `accounts`, returns a DataFrame.
+
+    Balance sheet is split into these sections:
+    Assets
+        Current
+            Cash
+            ...
+        Long Term
+            Investments
+            Property
+            ...
+    Liabilities
+        Current
+            Credit Card
+            ...
+        Long Term
+            Loans
+            ...
+
+    categories = {
+        'Assets' : {
+            'Current': {
+                # User category keys and account DataFrame columns list for values
+                'Cash & Cash Equivalents': [
+                    ('Cash', 'BofA Checking'),
+                    ('Cash', 'BofA Savings'),
+                    ...
+                ],
+                'User Category': [...]
+                ...
+            },
+            'Long Term': {...}
+        },
+        'Liabilities' : {
+            'Current': {...},
+            'Long Term': {...}
+        }
+    }
+    """
+
+    # Aggregate accounts based on category definition, via 3 level dictionary comprehension
+    balance_dict = {
+        (k0, k1, k2): accounts[v2].sum(axis=1)
+            for k0, v0 in category_dict.iteritems()
+                for k1, v1 in v0.iteritems()
+                    for k2, v2 in v1.iteritems()
+                        if v2
+    }
+
+    # Convert to DataFrame
+    balance = pd.DataFrame(balance_dict)
+
+    return balance.fillna(0.0)
+
+def balance_sheet(balance=None, period=datetime.datetime.now().year):
+    """
+    Calculate and return a balance sheet.
+    Balance will be based on the last entry of account data (e.g. December 31st) for the given `period` time period,
+    which defaults to the current year.
+
+    All levels may be user defined by the category dictonary. The value of the last level must contain valid pandas DataFrame
+    column selectors, e.g. `Account Type` for single index column / level 0 access or `('Cash', 'Account Name')` for
+    multilevel indexing.
+
+    Example:
+    ```
+    balance = calc_balance(accounts, category_dict=categories)
+    balancesheet = balance_sheet(balance, period=2015)
+    ```
+    """
+
+    # Force period to string
+    period = str(period)
+
+    # Sum over Period and convert to Statement DataFrame
+    balance = pd.DataFrame(balance[period].iloc[-1])
+    balance.columns = ['$']
+    balance.index.names = ['Category', 'Type', 'Item']
+
+    # Calculate Net
+    net = balance[['$']].sum(level=[0,1]).sum(level=1)
+    net.index = pd.MultiIndex.from_tuples([('Net', x0, 'Total') for x0 in net.index])
+    net.index.names = ['Category', 'Type', 'Item']
+
+    # Add Net
+    balance = pd.concat([balance, net])
+
+    # Calculate percentages of level 0
+    balance['%'] = 100.0 * balance.div(balance.sum(level=0), level=0)
+
+    # Calculate heirarchical totals
+    l1_totals = balance.sum(level=[0,1])
+    l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
+    l1_totals.index.names = ['Category', 'Type', 'Item']
+
+    l0_totals = balance.sum(level=[0])
+    l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
+    l0_totals.index.names = ['Category', 'Type', 'Item']
+
+    # Add totals to dataframe
+    balance = balance.combine_first(l1_totals)
+    balance = balance.combine_first(l0_totals)
+
+    return balance
 
 def calc_cashflow(transactions=None, category_dict=None):
     """
@@ -50,25 +156,27 @@ def calc_cashflow(transactions=None, category_dict=None):
     with at least a `category` key and set of categories for the value along with optional parameters.
 
     ```
-    category_dict = 'Inflow': {
-        'Operating': {
-            # Paychecks
-            'Technical Services': {
-                'categories': {'Paycheck', ...}, # required set of categories
-                'labels': set(),                 # optional set of labels, defaults to set() if not passed in
-                'logic': ''                      # optional 'not' string to set inverse of 'labels', defaults to ''
+    categories = {
+        'Inflow': {
+            'Operating': {
+                # Paychecks
+                'Technical Services': {
+                    'categories': {'Paycheck', ...}, # required set of categories
+                    'labels': set(),                 # optional set of labels, defaults to set() if not passed in
+                    'logic': ''                      # optional 'not' string to set inverse of 'labels', defaults to ''
+                },
+                'User Category': {...}
             },
-            'User Category': {...}
-        },
-        'Non-Operating': {
-            'User Category': {
-                'categories': {...}
+            'Non-Operating': {
+                'User Category': {
+                    'categories': {...}
+                }
             }
+        },
+        'Outflow': {
+            'Operating': {...},
+            'Non-Operating': {..}
         }
-    },
-    'Outflow': {
-        'Operating': {...},
-        'Non-Operating': {..}
     }
     ```
     """
@@ -129,8 +237,9 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     # Force period to string
     period = str(period)
 
-    # Convert to Statement DataFrame
-    cashflow = pd.DataFrame(cashflow, columns=['$'])
+    # Sum over Period and convert to Statement DataFrame
+
+    cashflow = pd.DataFrame(cashflow[period].sum(), columns=['$'])
     cashflow.index.names = ['Category', 'Type', 'Item']
 
     # Calculate Net
