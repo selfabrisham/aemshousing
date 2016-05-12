@@ -541,3 +541,24 @@ def calculate_growth(net_worth=None, offsets=None):
     growth = pd.DataFrame(growth, columns=['Period', 'Growth', 'Assets', 'Debts', 'Net']).set_index(['Period', 'Growth'])
 
     return growth
+
+def summarize_accounts(accounts=None):
+    """Summarize current accounts"""
+
+    # Get current accounts
+    account_summary = accounts.iloc[[-1]].T
+    account_summary.columns = ['Balance']
+    account_summary.index.names = ['Type', 'Account']
+
+    # Calculate percentages of level 0
+    account_summary['% of Total'] = 100.0 * account_summary.div(account_summary.sum(level=0), level=0)
+
+    # Calculate heirarchical totals
+    l0_totals = account_summary.sum(level=[0])
+    l0_totals.index = pd.MultiIndex.from_tuples([(x0,'Total') for x0 in l0_totals.index])
+    l0_totals.index.names = ['Type', 'Account']
+
+    # Add totals to DataFrame
+    account_summary = account_summary.combine_first(l0_totals)
+
+    return account_summary
