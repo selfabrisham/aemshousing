@@ -26,13 +26,15 @@ import pandas as import pd
 
 def assumption_financial_independance_forecast(
         income=50000.00,
+        initial_balance=0.0,
         income_increase=0.03,
         savings_rate=0.50,
         withdrawal_rate=0.04,
         return_rate=0.05,
         age=23,
         life_expectancy=90,
-        start=None
+        start=None,
+        expense_increase=True
     ):
     """
     Financial Independance (Investment withdrawal > Living expenses) forecasting based purely on assumptions not real data.
@@ -48,6 +50,10 @@ def assumption_financial_independance_forecast(
         index=range(years),
         columns=columns
     )
+    cashflow_table.index.name = 'year'
+
+    # Store initial balance
+    cashflow_table.iloc[0]['balance'] = initial_balance
 
     # Generate Cashflow table
     fi = False
@@ -55,7 +61,8 @@ def assumption_financial_independance_forecast(
 
         # Calculate savings and expenses
         yearly_savings = savings_rate * income
-        yearly_expenses = (1 - savings_rate) * income if not fi else cashflow_table.loc[i-1]['withdrawal']
+        if i == 0 or expense_increase:
+            yearly_expenses = (1 - savings_rate) * income if not fi else cashflow_table.loc[i-1]['withdrawal']
 
         # store data
         cashflow_table.loc[i]['age'] = age + i
@@ -64,7 +71,7 @@ def assumption_financial_independance_forecast(
         cashflow_table.loc[i]['expenses'] = yearly_expenses
 
         # If not the first year
-        if i > 1:
+        if i >= 1:
             # Growth balance
             cashflow_table.loc[i]['balance'] = (1 + return_rate) * cashflow_table.loc[i-1]['balance']
             # Calculate potential withdrawal
@@ -92,7 +99,7 @@ def assumption_financial_independance_forecast(
     # Turn Index into date if data available
     if start:
         cashflow_table['Date'] = pd.date_range(start=start, periods=len(cashflow_table.index), freq='A')
-        cashflow_table = cashflow_table.set_index('Date')
+        cashflow_table = cashflow_table.reset_index().set_index('Date')
 
     return cashflow_table
 
