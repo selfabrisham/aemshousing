@@ -17,13 +17,17 @@ copyright  : Copyright 2016, tmthydvnprt
 credits    :
 
 """
+import datetime
+import numpy as np
+import pandas as pd
 
-import pandas as import pd
+from pf.constants import DAYS_IN_YEAR
+from pf.util import get_age
 
 ################################################################################################################################
 # Financial Statements
 ################################################################################################################################
-def balance_sheet(accounts=None, category_dict=None):
+def calc_balance(accounts=None, category_dict=None):
     """
     Calculate daily balances of grouped assets/liabilities based on `category_dict`s from `accounts`, returns a DataFrame.
 
@@ -68,10 +72,9 @@ def balance_sheet(accounts=None, category_dict=None):
     # Aggregate accounts based on category definition, via 3 level dictionary comprehension
     balance_dict = {
         (k0, k1, k2): accounts[v2].sum(axis=1) if v2 else pd.Series(0, index=accounts.index)
-            for k0, v0 in category_dict.iteritems()
-                for k1, v1 in v0.iteritems()
-                    for k2, v2 in v1.iteritems()
-                        if v2
+        for k0, v0 in category_dict.iteritems()
+        for k1, v1 in v0.iteritems()
+        for k2, v2 in v1.iteritems()
     }
 
     # Convert to DataFrame
@@ -105,7 +108,7 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
     balance.index.names = ['Category', 'Type', 'Item']
 
     # Calculate Net
-    net = balance[['$']].sum(level=[0,1]).sum(level=1)
+    net = balance[['$']].sum(level=[0, 1]).sum(level=1)
     net.index = pd.MultiIndex.from_tuples([('Net', x0, 'Total') for x0 in net.index])
     net.index.names = ['Category', 'Type', 'Item']
 
@@ -116,7 +119,7 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
     balance['%'] = 100.0 * balance.div(balance.sum(level=0), level=0)
 
     # Calculate heirarchical totals
-    l1_totals = balance.sum(level=[0,1])
+    l1_totals = balance.sum(level=[0, 1])
     l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
     l1_totals.index.names = ['Category', 'Type', 'Item']
 
@@ -132,7 +135,8 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
 
 def calc_income(paychecks=None, transactions=None, category_dict=None):
     """
-    Calculate daily income of grouped revenue/expenses/taxes based on `category_dict`s from `paychecks` and `transactions`, returns a DataFrame.
+    Calculate daily income of grouped revenue/expenses/taxes based on `category_dict`s from `paychecks` and `transactions`,
+     returns a DataFrame.
 
     Income Statement is split into these sections:
     Revenue
@@ -204,14 +208,14 @@ def calc_income(paychecks=None, transactions=None, category_dict=None):
         for k1, v1 in v0.iteritems():
             for k2, v2 in v1.iteritems():
 
-                if v2['source'] =='transactions':
+                if v2['source'] == 'transactions':
                     income_dict[(k0, k1, k2)] = transactions[
                         # If it is in the category
                         (transactions['category'].isin(v2['categories'])) &
                         (
                             # And if is has the correct label
                             (transactions['labels'].apply(
-                                    lambda x: x.isdisjoint(v2['labels']) if v2['logic'] else not x.isdisjoint(v2['labels'])
+                                lambda x: x.isdisjoint(v2['labels']) if v2['logic'] else not x.isdisjoint(v2['labels'])
                             )) |
                             # Or it does not have any labels
                             (transactions['labels'].apply(lambda x: v2['labels'] == set()))
@@ -223,10 +227,14 @@ def calc_income(paychecks=None, transactions=None, category_dict=None):
     # Convert to DataFrame
     cats = income_dict.keys()
     cats.sort()
-    income = pd.DataFrame([], columns=pd.MultiIndex.from_tuples(cats), index=pd.date_range(transactions.index[-1], transactions.index[0]))
+    income = pd.DataFrame(
+        data=[],
+        columns=pd.MultiIndex.from_tuples(cats),
+        index=pd.date_range(transactions.index[-1], transactions.index[0])
+    )
     for cat in income_dict:
-        d = pd.DataFrame(income_dict[cat].values, index=income_dict[cat].index, columns=pd.MultiIndex.from_tuples([cat]))
-        income[cat] = d.groupby(lambda x: x.date()).sum()
+        cat_df = pd.DataFrame(income_dict[cat].values, index=income_dict[cat].index, columns=pd.MultiIndex.from_tuples([cat]))
+        income[cat] = cat_df.groupby(lambda x: x.date()).sum()
 
     return income.fillna(0.0)
 
@@ -255,7 +263,7 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
     income['%'] = 100.0 * income.div(income.sum(level=0), level=0)
 
     # Calculate heirarchical totals
-    l1_totals = income.sum(level=[0,1])
+    l1_totals = income.sum(level=[0, 1])
     l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
     l1_totals.index.names = ['Category', 'Type', 'Item']
 
@@ -269,7 +277,7 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
 
     # Calculate Net
     before = [(x, 'Total', ' ') for x in set(income.index.levels[0]).difference(nettax)]
-    after =  [(x, 'Total', ' ') for x in set(income.index.levels[0])]
+    after = [(x, 'Total', ' ') for x in set(income.index.levels[0])]
 
     net = pd.DataFrame({
         '$': [
@@ -351,29 +359,31 @@ def calc_cashflow(transactions=None, category_dict=None):
 
     # Aggregate transactions based on category definition, via 3 level dictionary comprehension
     cashflow_dict = {
-        (k0, k1, k2):
-            transactions[
-                # If it is in the category
-                (transactions['category'].isin(v2['categories'])) &
-                (
-                    # And if is has the correct label
-                    (transactions['labels'].apply(
-                            lambda x: x.isdisjoint(v2['labels']) if v2['logic'] else not x.isdisjoint(v2['labels'])
-                    )) |
-                    # Or it does not have any labels
-                    (transactions['labels'].apply(lambda x: v2['labels'] == set()))
-                )
-            ]['amount']
-
-            for k0, v0 in category_dict.iteritems()
-                for k1, v1 in v0.iteritems()
-                    for k2, v2 in v1.iteritems()
+        (k0, k1, k2): transactions[
+            # If it is in the category
+            (transactions['category'].isin(v2['categories'])) &
+            (
+                # And if is has the correct label
+                (transactions['labels'].apply(
+                    lambda x: x.isdisjoint(v2['labels']) if v2['logic'] else not x.isdisjoint(v2['labels'])
+                )) |
+                # Or it does not have any labels
+                (transactions['labels'].apply(lambda x: v2['labels'] == set()))
+            )
+        ]['amount']
+        for k0, v0 in category_dict.iteritems()
+        for k1, v1 in v0.iteritems()
+        for k2, v2 in v1.iteritems()
     }
 
     # Convert to DataFrame
     cols = cashflow_dict.keys()
     cols.sort()
-    cashflow = pd.DataFrame([], columns=pd.MultiIndex.from_tuples(cols), index=pd.date_range(transactions.index[-1], transactions.index[0]))
+    cashflow = pd.DataFrame(
+        data=[],
+        columns=pd.MultiIndex.from_tuples(cols),
+        index=pd.date_range(transactions.index[-1], transactions.index[0])
+    )
     for cat in cashflow_dict:
         c = pd.DataFrame(cashflow_dict[cat].values, index=cashflow_dict[cat].index, columns=pd.MultiIndex.from_tuples([cat]))
         cashflow[cat] = c.groupby(lambda x: x.date()).sum()
@@ -383,7 +393,8 @@ def calc_cashflow(transactions=None, category_dict=None):
 def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     """
     Return a Cashflow Statement for a period from cashflow DataFrame.
-    Cashflow will be based on the last entry of account data (e.g. December 31st) for the given `period` time period, which defaults to the current year.  A Net section is automagically calculated.
+    Cashflow will be based on the last entry of account data (e.g. December 31st) for the given `period` time period, which
+     defaults to the current year.  A Net section is automagically calculated.
 
     Example:
     ```
@@ -400,7 +411,7 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     cashflow.index.names = ['Category', 'Type', 'Item']
 
     # Calculate Net
-    net = cashflow[['$']].sum(level=[0,1]).sum(level=1)
+    net = cashflow[['$']].sum(level=[0, 1]).sum(level=1)
     net.index = pd.MultiIndex.from_tuples([('Net', x0, 'Total') for x0 in net.index])
     net.index.names = ['Category', 'Type', 'Item']
 
@@ -411,7 +422,7 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     cashflow['%'] = 100.0 * cashflow.div(cashflow.sum(level=0), level=0)
 
     # Calculate heirarchical totals
-    l1_totals = cashflow.sum(level=[0,1])
+    l1_totals = cashflow.sum(level=[0, 1])
     l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
     l1_totals.index.names = ['Category', 'Type', 'Item']
 
@@ -469,7 +480,8 @@ def calculate_stats(net_worth=None):
 def calculate_growth(net_worth=None, offsets=None):
     """
     Calculates the growth of cetain time periods from a net_worth DataFrame.
-    The default time periods (1Mo, 3Mo, 6Mo, YTD, 1Yr, 3Yr, 5Yr, Life) may be overriden by providing a list of nested tuples containing (string label, (pandas `DataTimeOffset` objects)).  Multiple `DataTimeOffset` will be added together.
+    The default time periods (1Mo, 3Mo, 6Mo, YTD, 1Yr, 3Yr, 5Yr, Life) may be overriden by providing a list of nested tuples
+     containing (string label, (pandas `DataTimeOffset` objects)).  Multiple `DataTimeOffset` will be added together.
 
     The default is
     ```
@@ -509,8 +521,8 @@ def calculate_growth(net_worth=None, offsets=None):
         # Compute offset date
         final = current_index
         initial = current_index
-        for o in offset:
-            initial = initial + o
+        for t in offset:
+            initial = initial + t
 
         # If inside data
         if initial >= net_worth.index[0]:
@@ -524,7 +536,9 @@ def calculate_growth(net_worth=None, offsets=None):
             gains = 100.0 * delta / net_worth.loc[initial][columns]
             annualized_gains = gains / number_of_years
             try:
-                cagr = 100.0 * ((net_worth.loc[final][columns] / net_worth.loc[initial][columns]).pow(1.0 / number_of_years) - 1.0)
+                cagr = 100.0 * (
+                    (net_worth.loc[final][columns] / net_worth.loc[initial][columns]).pow(1.0 / number_of_years) - 1.0
+                )
             except ZeroDivisionError:
                 cagr = pd.Series(np.zeros(gains.shape))
             # Store Info in Dictionary
@@ -555,7 +569,7 @@ def summarize_accounts(accounts=None):
 
     # Calculate heirarchical totals
     l0_totals = account_summary.sum(level=[0])
-    l0_totals.index = pd.MultiIndex.from_tuples([(x0,'Total') for x0 in l0_totals.index])
+    l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total') for x0 in l0_totals.index])
     l0_totals.index.names = ['Type', 'Account']
 
     # Add totals to DataFrame
@@ -571,10 +585,10 @@ def get_milestones(networth=None, milestones=None):
     milestone_data = []
     for milestone in milestones:
         gt_milestone = networth['Net'] >= milestone
-        milestone_date =  gt_milestone[gt_milestone==True].index[0] if gt_milestone.any() else gt_milestone.index[-1]
+        milestone_date = gt_milestone[gt_milestone == True].index[0] if gt_milestone.any() else gt_milestone.index[-1]
         milestone_age = get_age(milestone_date)
         milestone_years = (milestone_date - datetime.datetime.today()).days / DAYS_IN_YEAR
         milestone_actual = networth['Net'].loc[milestone_date]
         milestone_data.append((milestone_date, milestone, milestone_actual, milestone_age, milestone_years))
 
-    return pd.DataFrame(milestone_data, columns=['Date', 'Milestone','Actual','Age', 'Years'])
+    return pd.DataFrame(milestone_data, columns=['Date', 'Milestone', 'Actual', 'Age', 'Years'])

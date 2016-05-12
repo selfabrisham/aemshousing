@@ -1,13 +1,26 @@
 
 pf Linting Report
-2016-03-07 06:16:49 -0800
+2016-05-12 09:26:06 -0700
 =========================================
 
+************* Module pf.accounting
+W:368,60: Cell variable v2 defined in loop (cell-var-from-loop)
+W:368,43: Cell variable v2 defined in loop (cell-var-from-loop)
+W:368,94: Cell variable v2 defined in loop (cell-var-from-loop)
+W:371,56: Cell variable v2 defined in loop (cell-var-from-loop)
+E:551,35: Instance of 'SparseArray' has no 'tolist' member (no-member)
+************* Module pf.io
+W:169,12: No exception type(s) specified (bare-except)
+R:174, 0: Too many branches (34/16) (too-many-branches)
+R:174, 0: Too many statements (82/64) (too-many-statements)
+************* Module pf.plot
+W: 21, 0: Relative import 'io', should be 'pf.io' (relative-import)
+E:146,10: Module 'pf.io' has no 'BytesIO' member (no-member)
 
 
 Report
 ======
-90 statements analysed.
+446 statements analysed.
 
 Statistics by type
 ------------------
@@ -15,13 +28,13 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |type     |number |old number |difference |%documented |%badname |
 +=========+=======+===========+===========+============+=========+
-|module   |4      |4          |=          |100.00      |0.00     |
+|module   |7      |7          |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 |class    |0      |0          |=          |0           |0        |
 +---------+-------+-----------+-----------+------------+---------+
 |method   |0      |0          |=          |0           |0        |
 +---------+-------+-----------+-----------+------------+---------+
-|function |5      |5          |=          |100.00      |0.00     |
+|function |24     |24         |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -32,10 +45,18 @@ External dependencies
 
     matplotlib (pf.plot)
       \-patches (pf.plot)
-    numpy (pf.plot,pf.util)
-    pandas (pf.plot,pf.util)
+    numpy (pf.accounting,pf.forecasting,pf.io,pf.plot,pf.util)
+    pandas (pf.accounting,pf.forecasting,pf.io,pf.plot,pf.util)
+    pdfminer 
+      \-converter (pf.io)
+      \-layout (pf.io)
+      \-pdfdocument (pf.io)
+      \-pdfinterp (pf.io)
+      \-pdfpage (pf.io)
+      \-pdfparser (pf.io)
     pf 
-      \-constants (pf.util)
+      \-constants (pf.accounting,pf.io,pf.util)
+      \-io (pf.plot)
 
 
 
@@ -45,13 +66,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |122    |50.00 |122      |=          |
+|code      |578    |46.92 |578      |=          |
 +----------+-------+------+---------+-----------+
-|docstring |81     |33.20 |81       |=          |
+|docstring |406    |32.95 |406      |=          |
 +----------+-------+------+---------+-----------+
-|comment   |25     |10.25 |25       |=          |
+|comment   |161    |13.07 |161      |=          |
 +----------+-------+------+---------+-----------+
-|empty     |16     |6.56  |16       |=          |
+|empty     |87     |7.06  |87       |=          |
 +----------+-------+------+---------+-----------+
 
 
@@ -77,16 +98,52 @@ Messages by category
 +===========+=======+=========+===========+
 |convention |0      |0        |=          |
 +-----------+-------+---------+-----------+
-|refactor   |0      |0        |=          |
+|refactor   |2      |2        |=          |
 +-----------+-------+---------+-----------+
-|warning    |0      |0        |=          |
+|warning    |6      |6        |=          |
 +-----------+-------+---------+-----------+
-|error      |0      |0        |=          |
+|error      |2      |2        |=          |
 +-----------+-------+---------+-----------+
+
+
+
+% errors / warnings by module
+-----------------------------
+
++--------------+------+--------+---------+-----------+
+|module        |error |warning |refactor |convention |
++==============+======+========+=========+===========+
+|pf.accounting |50.00 |66.67   |0.00     |0.00       |
++--------------+------+--------+---------+-----------+
+|pf.plot       |50.00 |16.67   |0.00     |0.00       |
++--------------+------+--------+---------+-----------+
+|pf.io         |0.00  |16.67   |100.00   |0.00       |
++--------------+------+--------+---------+-----------+
+
+
+
+Messages
+--------
+
++--------------------+------------+
+|message id          |occurrences |
++====================+============+
+|cell-var-from-loop  |4           |
++--------------------+------------+
+|no-member           |2           |
++--------------------+------------+
+|too-many-statements |1           |
++--------------------+------------+
+|too-many-branches   |1           |
++--------------------+------------+
+|relative-import     |1           |
++--------------------+------------+
+|bare-except         |1           |
++--------------------+------------+
 
 
 
 Global evaluation
 -----------------
-Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
+Your code has been rated at 9.60/10 (previous run: 9.60/10, +0.00)
 

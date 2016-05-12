@@ -1,7 +1,10 @@
 """
 forecasting.py
 
-Assumption and Data Driven based forecasting calculation.  Assumption based forecasting is useful for quickly playing with or understanding a concept; it can be used to evaluate various strategies without historical or real data.  Data driven forecasting is useful for forecasting an actual financial situation based on historical data, either personal or economic.  The Data driven approach generates statistical models from real data and forecasts with random samples from the models.
+Assumption and Data Driven based forecasting calculation.  Assumption based forecasting is useful for quickly playing with or
+understanding a concept; it can be used to evaluate various strategies without historical or real data.  Data driven
+forecasting is useful for forecasting an actual financial situation based on historical data, either personal or economic.
+The Data driven approach generates statistical models from real data and forecasts with random samples from the models.
 
 project    : pf
 version    : 0.0.0
@@ -18,13 +21,14 @@ credits    :
 
 """
 
-import pandas as import pd
+import numpy as np
+import pandas as pd
 
 ################################################################################################################################
 # Assumption Based Forecasting
 ################################################################################################################################
 
-def assumption_financial_independance_forecast(
+def assumption_fi_forecast(
         income=50000.00,
         initial_balance=0.0,
         income_increase=0.03,

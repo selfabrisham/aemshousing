@@ -20,7 +20,9 @@ credits    :
 
 import re
 import glob
+import numpy as np
 import pandas as pd
+import cStringIO
 
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
@@ -30,6 +32,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
 
 from pf.constants import DATE_RE
+from pf.util import parse_month_year_end, parse_month_day_dates
 
 ################################################################################################################################
 # Account Functions
@@ -59,7 +62,7 @@ def read_in_accounts(filepath=''):
         sheetname=None,
         index_col=0,
         parse_dates=True,
-        header=[0,1],
+        header=[0, 1],
         date_parser=parse_month_year_end
     ).items()}
 
@@ -149,17 +152,13 @@ def text2listoflists(text=''):
 
     # Splits text on lines and then splits line on multiple spaces, ignoring empty lines
     listoflists = [
-        [
-            cell.strip()
-                for cell in line.split('  ')
-                    if cell.strip() != ''
-        ]
-            for line in text.split('\n')
+        [cell.strip() for cell in line.split('  ') if cell.strip() != '']
+        for line in text.split('\n')
     ]
     # Remove empty lists or 'cells'
     listoflists = [
         p for p in listoflists
-            if p and p != ['']
+        if p and p != ['']
     ]
 
     # Parse floats if 'cell' only contains number
@@ -174,7 +173,8 @@ def text2listoflists(text=''):
 
 def paycheck_parser(paychecks_dict=None):
     """
-    User defined function to convert dictonary of paycheck list of lists into a DataFrame. You could always replace of the whole function or you can use the default one as a starting point.  This fuction is called from within `read_in_paychecks()`.
+    User defined function to convert dictonary of paycheck list of lists into a DataFrame. You could always replace of the whole
+    function or you can use the default one as a starting point.  This fuction is called from within `read_in_paychecks()`.
 
     Necessary user defined parts are sectioned off with `#####`.
 
@@ -182,12 +182,12 @@ def paycheck_parser(paychecks_dict=None):
 
     # User Defined Constants like precompiled regex
     ############################################################################################################################
-    BASERATE_RE = re.compile(r'(.*) Base Rate:')
+    baserate_re = re.compile(r'(.*) Base Rate:')
     ############################################################################################################################
 
     # Loop thru dictionary (these lines are generic)
     paychecks = []
-    for date, paycheck_lists in paychecks_dict.items():
+    for _, paycheck_lists in paychecks_dict.items():
 
         # Parse data into dictionary of 'fields'
         paycheck_fields = {}
@@ -277,7 +277,7 @@ def paycheck_parser(paychecks_dict=None):
 
             # Regular parsing
             else:
-                baserate_search = BASERATE_RE.search(str(row[0]))
+                baserate_search = baserate_re.search(str(row[0]))
                 # Read Base Rate
                 if baserate_search:
                     baserate = baserate_search.groups()[0]
