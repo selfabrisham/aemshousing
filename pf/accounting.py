@@ -562,3 +562,19 @@ def summarize_accounts(accounts=None):
     account_summary = account_summary.combine_first(l0_totals)
 
     return account_summary
+
+def get_milestones(networth=None, milestones=None):
+    """Search networth for milestones"""
+    milestones = milestones if milestones else np.array([
+        1e4, 2.5e4, 5e4, 7.5e4, 1e5, 1.5e5, 2e5, 2.5e5, 5e5, 7.5e5, 1e6, 1.5e6, 2e6
+    ])
+    milestone_data = []
+    for milestone in milestones:
+        gt_milestone = networth['Net'] >= milestone
+        milestone_date =  gt_milestone[gt_milestone==True].index[0] if gt_milestone.any() else gt_milestone.index[-1]
+        milestone_age = get_age(milestone_date)
+        milestone_years = (milestone_date - datetime.datetime.today()).days / DAYS_IN_YEAR
+        milestone_actual = networth['Net'].loc[milestone_date]
+        milestone_data.append((milestone_date, milestone, milestone_actual, milestone_age, milestone_years))
+
+    return pd.DataFrame(milestone_data, columns=['Date', 'Milestone','Actual','Age', 'Years'])
