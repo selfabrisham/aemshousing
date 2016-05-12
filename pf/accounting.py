@@ -396,7 +396,6 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     period = str(period)
 
     # Sum over Period and convert to Statement DataFrame
-
     cashflow = pd.DataFrame(cashflow[period].sum(), columns=['$'])
     cashflow.index.names = ['Category', 'Type', 'Item']
 
@@ -425,3 +424,120 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     cashflow = cashflow.combine_first(l0_totals)
 
     return cashflow
+
+################################################################################################################################
+# Net Worth Calculations
+################################################################################################################################
+def calculate_net_worth(accounts=None):
+    """Calculate Net Worth (Assets - Debts) based on `accounts` DataFrame"""
+
+    # Aggregate accounts by assets and debts
+    net_worth = pd.DataFrame({
+        'Assets': accounts[accounts > 0.0].fillna(0.0).sum(1),
+        'Debts': accounts[accounts < 0.0].fillna(0.0).sum(1),
+    })
+
+    # Calculate Net Worth
+    net_worth['Net'] = net_worth['Assets'] + net_worth['Debts']
+
+    # Calculate Debt Ratio
+    net_worth['Debt Ratio'] = 100.0 * (net_worth['Debts'].abs() / net_worth['Assets'])
+
+    # Calculate Dollar and Percent Change
+    for x in ['Assets', 'Debts', 'Net']:
+        net_worth['{} Change ($)'.format(x)] = net_worth[x].diff(1).fillna(0.0)
+        net_worth['{} Change (%)'.format(x)] = 100.0 * net_worth[x].pct_change().fillna(0.0)
+
+    return net_worth
+
+def calculate_stats(net_worth=None):
+    """Calculate the statistics (Current, Max, Min, Mean, Median, Std. Dev.) of a `net_worth` DataFrame"""
+
+    # Remove Infs and NaNs
+    net_worth = net_worth.replace([-np.Inf, np.Inf, np.nan], 0.0)
+
+    # Calculate Statistics
+    stats = pd.DataFrame({'Current': net_worth.iloc[-1]})
+    stats['Max'] = net_worth.max(skipna=True)
+    stats['Min'] = net_worth.min(skipna=True)
+    stats['Mean'] = net_worth.mean(skipna=True)
+    stats['Median'] = net_worth.median(skipna=True)
+    stats['Std Dev'] = net_worth.std(skipna=True)
+
+    return stats
+
+def calculate_growth(net_worth=None, offsets=None):
+    """
+    Calculates the growth of cetain time periods from a net_worth DataFrame.
+    The default time periods (1Mo, 3Mo, 6Mo, YTD, 1Yr, 3Yr, 5Yr, Life) may be overriden by providing a list of nested tuples containing (string label, (pandas `DataTimeOffset` objects)).  Multiple `DataTimeOffset` will be added together.
+
+    The default is
+    ```
+    [
+        ('1 Mo', (pd.tseries.offsets.MonthEnd(-1),)),
+        ('3 Mo', (pd.tseries.offsets.MonthEnd(-3),)),
+        ('6 Mo', (pd.tseries.offsets.MonthEnd(-6),)),
+        ('YTD', (-pd.tseries.offsets.YearBegin(), pd.tseries.offsets.MonthEnd())),
+        ('1 Yr', (pd.tseries.offsets.MonthEnd(-1 * 12),)),
+        ('2 Yr', (pd.tseries.offsets.MonthEnd(-2 * 12),)),
+        ('3 Yr', (pd.tseries.offsets.MonthEnd(-3 * 12),)),
+        ('5 Yr', (pd.tseries.offsets.MonthEnd(-5 * 12),)),
+        ('Life', (pd.DateOffset(days=-(net_worth.index[-1] - net_worth.index[0]).days),))
+    ]
+    ```
+    """
+
+    # Set up
+    columns = ['Assets', 'Debts', 'Net']
+    current_index = net_worth.index[-1]
+
+    # Calculate Grow over time periods (1mo, 3mo, 6mo, ytd, 1yr, 3yr,, 5yr, 10yr, life)
+    offsets = offsets if offsets else [
+        ('1 Mo', (pd.tseries.offsets.MonthEnd(-1),)),
+        ('3 Mo', (pd.tseries.offsets.MonthEnd(-3),)),
+        ('6 Mo', (pd.tseries.offsets.MonthEnd(-6),)),
+        ('YTD', (-pd.tseries.offsets.YearBegin(), pd.tseries.offsets.MonthEnd())),
+        ('1 Yr', (pd.tseries.offsets.MonthEnd(-1 * 12),)),
+        ('2 Yr', (pd.tseries.offsets.MonthEnd(-2 * 12),)),
+        ('3 Yr', (pd.tseries.offsets.MonthEnd(-3 * 12),)),
+        ('5 Yr', (pd.tseries.offsets.MonthEnd(-5 * 12),)),
+        ('Life', (pd.DateOffset(days=-(net_worth.index[-1] - net_worth.index[0]).days),))
+    ]
+
+    growth = []
+    for offstr, offset in offsets:
+        # Compute offset date
+        final = current_index
+        initial = current_index
+        for o in offset:
+            initial = initial + o
+
+        # If inside data
+        if initial >= net_worth.index[0]:
+            # Set time indexes
+            initial_date = initial.date().strftime('%b %Y')
+            final_date = final.date().strftime('%b %Y')
+            number_of_days = (final - initial).days
+            number_of_years = number_of_days / DAYS_IN_YEAR
+            # Calculate growth
+            delta = net_worth.loc[final][columns] - net_worth.loc[initial][columns]
+            gains = 100.0 * delta / net_worth.loc[initial][columns]
+            annualized_gains = gains / number_of_years
+            try:
+                cagr = 100.0 * ((net_worth.loc[final][columns] / net_worth.loc[initial][columns]).pow(1.0 / number_of_years) - 1.0)
+            except ZeroDivisionError:
+                cagr = pd.Series(np.zeros(gains.shape))
+            # Store Info in Dictionary
+            growth.extend([
+                [offstr, final_date] + net_worth.loc[final][columns].values.tolist(),
+                [offstr, initial_date] + net_worth.loc[initial][columns].values.tolist(),
+                [offstr, 'Delta'] + delta.values.tolist(),
+                [offstr, 'Gain'] + gains.values.tolist(),
+                [offstr, 'Ann Gain'] + annualized_gains.values.tolist(),
+                [offstr, 'CAGR'] + cagr.values.tolist()
+            ])
+
+    # Convert to DataFrame
+    growth = pd.DataFrame(growth, columns=['Period', 'Growth', 'Assets', 'Debts', 'Net']).set_index(['Period', 'Growth'])
+
+    return growth
