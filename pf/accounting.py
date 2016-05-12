@@ -67,7 +67,7 @@ def balance_sheet(accounts=None, category_dict=None):
 
     # Aggregate accounts based on category definition, via 3 level dictionary comprehension
     balance_dict = {
-        (k0, k1, k2): accounts[v2].sum(axis=1)
+        (k0, k1, k2): accounts[v2].sum(axis=1) if v2 else pd.Series(0, index=accounts.index)
             for k0, v0 in category_dict.iteritems()
                 for k1, v1 in v0.iteritems()
                     for k2, v2 in v1.iteritems()
