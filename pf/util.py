@@ -36,9 +36,10 @@ def parse_month_year_end(month_year=''):
 
 def parse_month_day_dates(month_day=''):
     """Parse dates that only contain month/day for dates in current year"""
+    year = 0
     try:
         year = pd.to_datetime(month_day)
-    except pd.tslib.OutOfBoundsDatetime:
+    except (pd.tslib.OutOfBoundsDatetime, ValueError):
         year = pd.to_datetime('{} {}'.format(month_day, datetime.datetime.now().year))
     return year
 
