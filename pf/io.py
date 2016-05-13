@@ -162,6 +162,7 @@ def text2listoflists(text=''):
     ]
 
     # Parse floats if 'cell' only contains number
+    #pylint: disable=bare-except
     for rownum, row in enumerate(listoflists):
         for colnum, col in enumerate(row):
             try:
@@ -179,7 +180,7 @@ def paycheck_parser(paychecks_dict=None):
     Necessary user defined parts are sectioned off with `#####`.
 
     """
-
+    #pylint: disable=too-many-branches,too-many-statements
     # User Defined Constants like precompiled regex
     ############################################################################################################################
     baserate_re = re.compile(r'(.*) Base Rate:')

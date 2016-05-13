@@ -17,6 +17,7 @@ copyright  : Copyright 2016, tmthydvnprt
 credits    :
 
 """
+from __future__ import absolute_import
 
 import io
 import datetime

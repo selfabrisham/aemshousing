@@ -358,6 +358,7 @@ def calc_cashflow(transactions=None, category_dict=None):
                     category_dict[k0][k1][k2]['logic'] = ''
 
     # Aggregate transactions based on category definition, via 3 level dictionary comprehension
+    #pylint: disable=cell-var-from-loop
     cashflow_dict = {
         (k0, k1, k2): transactions[
             # If it is in the category
@@ -542,6 +543,7 @@ def calculate_growth(net_worth=None, offsets=None):
             except ZeroDivisionError:
                 cagr = pd.Series(np.zeros(gains.shape))
             # Store Info in Dictionary
+            #pylint: disable=maybe-no-member
             growth.extend([
                 [offstr, final_date] + net_worth.loc[final][columns].values.tolist(),
                 [offstr, initial_date] + net_worth.loc[initial][columns].values.tolist(),
