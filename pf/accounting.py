@@ -622,7 +622,7 @@ def calc_metrics(summary=None, swr=0.04):
         'Profit Margin [%]' : 100.0 * (summary['Income'] + summary['Expense']) / summary['Income'],
         'Income Multiple [Yr]' : summary['Net'] / summary['Income'],
         'Expense Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
-        'Safe Withdrawl Expense [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense']
+        'Safe Withdrawl Expense [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense'],
         'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Income']
     })
 
