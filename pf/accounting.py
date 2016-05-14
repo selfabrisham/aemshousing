@@ -616,13 +616,14 @@ def calc_metrics(summary=None, swr=0.04):
     summary[['Income', 'Expense']] = pd.expanding_mean(summary[['Income', 'Expense']])
     # Calculate metrics
     metrics = pd.DataFrame({
-        'Debt Ratio' : 100.0 * -summary['Debts'] / summary['Assets'],
-        'DTI' : 100.0 * -summary['Debts'] / summary['Income'],
-        'Utilization' : 100.0 * -summary['Debts'] / summary['Credit Line'],
-        'Profit Margin' : 100.0 * (summary['Income'] + summary['Expense']) / summary['Income'],
-        'Net 2 Income' : summary['Net'] / summary['Income'],
-        'Years Expense' :  summary['Net'] / -summary['Expense'],
-        'Safe Withdrawl' : -summary['Expense'] / (swr * summary['Net'])
+        'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],
+        'Det to Income [%]' : 100.0 * -summary['Debts'] / summary['Income'],
+        'Utilization [%]' : 100.0 * -summary['Debts'] / summary['Credit Line'],
+        'Profit Margin [%]' : 100.0 * (summary['Income'] + summary['Expense']) / summary['Income'],
+        'Income Multiple [Yr]' : summary['Net'] / summary['Income'],
+        'Expense Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
+        'Safe Withdrawl Expense [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense']
+        'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Income']
     })
 
     return metrics
