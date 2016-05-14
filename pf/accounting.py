@@ -594,3 +594,35 @@ def get_milestones(networth=None, milestones=None):
         milestone_data.append((milestone_date, milestone, milestone_actual, milestone_age, milestone_years))
 
     return pd.DataFrame(milestone_data, columns=['Date', 'Milestone', 'Actual', 'Age', 'Years'])
+
+def summary_statement(networth=None, cashflow=None, limits=None):
+    """
+    Combine accounts, expenses, income, debt, etc. into one high level DataFrame
+    """
+    summary = pd.concat([
+        networth[['Assets', 'Debts', 'Net']],
+        12.0 * pd.DataFrame(cashflow.Inflow.resample('M', how='sum').sum(axis=1), columns=['Income']),
+        12.0 * pd.DataFrame(cashflow.Outflow.resample('M', how='sum').sum(axis=1), columns=['Expense']),
+        pd.DataFrame(limits.sum(axis=1), columns=['Credit Line']),
+    ], axis=1).dropna()
+
+    return summary
+
+def calc_metrics(summary=None, swr=0.04):
+    """
+    Calculate various metrics for personal finance (profit margin (SR), debt ratio, debt to income, time to FI).
+    """
+    # Create mean from month to month yearly estimates
+    summary[['Income', 'Expense']] = pd.expanding_mean(summary[['Income', 'Expense']])
+    # Calculate metrics
+    metrics = pd.DataFrame({
+        'Debt Ratio' : 100.0 * -summary['Debts'] / summary['Assets'],
+        'DTI' : 100.0 * -summary['Debts'] / summary['Income'],
+        'Utilization' : 100.0 * -summary['Debts'] / summary['Credit Line'],
+        'Profit Margin' : 100.0 * (summary['Income'] + summary['Expense']) / summary['Income'],
+        'Net 2 Income' : summary['Net'] / summary['Income'],
+        'Years Expense' :  summary['Net'] / -summary['Expense'],
+        'Safe Withdrawl' : -summary['Expense'] / (swr * summary['Net'])
+    })
+
+    return metrics

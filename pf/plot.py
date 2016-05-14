@@ -141,13 +141,14 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
     if current_bar:
         ax.axvline(datetime.date.today(), color='gray', linestyle='--', alpha=0.8)
 
-    # Grab figure
-    fig = matplotlib.pyplot.gcf()
-    # Output 'file'
-    png = io.BytesIO()
-    fig.savefig(png, format='png', bbox_inches='tight')
-    # Close plot
+    # Close plot (and return as png)
     if close:
+        # Grab figure
+        fig = matplotlib.pyplot.gcf()
+        # Output 'file'
+        png = io.BytesIO()
+        fig.savefig(png, format='png', bbox_inches='tight')
         matplotlib.pyplot.close()
-
-    return png
+        return png
+    else:
+        return None
