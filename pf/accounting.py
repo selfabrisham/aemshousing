@@ -617,8 +617,8 @@ def calc_metrics(summary=None, swr=0.04):
     # Calculate metrics
     metrics = pd.DataFrame({
         'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],
-        'Det to Income [%]' : 100.0 * -summary['Debts'] / summary['Income'],
-        'Utilization [%]' : 100.0 * -summary['Debts'] / summary['Credit Line'],
+        'Debt to Income [%]' : 100.0 * -summary['Debts'] / summary['Income'],
+        'Debt Utilization [%]' : 100.0 * -summary['Debts'] / summary['Credit Line'],
         'Profit Margin [%]' : 100.0 * (summary['Income'] + summary['Expense']) / summary['Income'],
         'Income Multiple [Yr]' : summary['Net'] / summary['Income'],
         'Expense Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
