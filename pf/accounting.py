@@ -595,14 +595,16 @@ def get_milestones(networth=None, milestones=None):
 
     return pd.DataFrame(milestone_data, columns=['Date', 'Milestone', 'Actual', 'Age', 'Years'])
 
-def summary_statement(networth=None, cashflow=None, limits=None):
+def summary_statement(networth=None, income=None, cashflow=None, limits=None):
     """
     Combine accounts, expenses, income, debt, etc. into one high level DataFrame
     """
     summary = pd.concat([
         networth[['Assets', 'Debts', 'Net']],
-        12.0 * pd.DataFrame(cashflow.Inflow.resample('M', how='sum').sum(axis=1), columns=['Income']),
+        12.0 * pd.DataFrame(income.Revenue.resample('M', how='sum').sum(axis=1), columns=['Total Income']),
+        12.0 * pd.DataFrame(cashflow.Inflow.resample('M', how='sum').sum(axis=1), columns=['Realized Income']),
         12.0 * pd.DataFrame(cashflow.Outflow.resample('M', how='sum').sum(axis=1), columns=['Expense']),
+        12.0 * pd.DataFrame(income.Taxes.resample('M', how='sum').sum(axis=1), columns=['Taxes']),
         pd.DataFrame(limits.sum(axis=1), columns=['Credit Line']),
     ], axis=1).dropna()
 
@@ -613,7 +615,7 @@ def calc_metrics(summary=None, swr=0.04):
     Calculate various metrics for personal finance (profit margin (SR), debt ratio, debt to income, time to FI).
     """
     # Create mean from month to month yearly estimates
-    summary[['Income', 'Expense']] = pd.expanding_mean(summary[['Income', 'Expense']])
+    summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']] = pd.expanding_mean(summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']])
     # Calculate metrics
     metrics = pd.DataFrame({
         'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],
@@ -623,7 +625,11 @@ def calc_metrics(summary=None, swr=0.04):
         'Income Multiple [Yr]' : summary['Net'] / summary['Income'],
         'Expense Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
         'Safe Withdrawl Expense [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense'],
-        'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Income']
+        'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Income'],
+        'Realized Income to Net [%]' : 100.0 * summary['Realized Income'] / summary['Net'],
+        'Total Tax Rate [%]' : 100.0 * summary['Tax'] / summary['Total Income'],
+        'Realized Income Tax Rate [%]' : 100.0 * summary['Tax'] / summary['Realized Income'],
+        'Tax to Net [%]' : 100.0 * summary['Tax'] / summary['Net'],
     })
 
     return metrics
