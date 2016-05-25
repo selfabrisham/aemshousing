@@ -619,13 +619,13 @@ def calc_metrics(summary=None, swr=0.04):
     # Calculate metrics
     metrics = pd.DataFrame({
         'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],
-        'Debt to Income [%]' : 100.0 * -summary['Debts'] / summary['Income'],
+        'Debt to Income [%]' : 100.0 * -summary['Debts'] / summary['Realized Income'],
         'Debt Utilization [%]' : 100.0 * -summary['Debts'] / summary['Credit Line'],
-        'Profit Margin [%]' : 100.0 * (summary['Income'] + summary['Expense']) / summary['Income'],
-        'Income Multiple [Yr]' : summary['Net'] / summary['Income'],
+        'Profit Margin [%]' : 100.0 * (summary['Realized Income'] + summary['Expense']) / summary['Realized Income'],
+        'Income Multiple [Yr]' : summary['Net'] / summary['Realized Income'],
         'Expense Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
         'Safe Withdrawl Expense [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense'],
-        'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Income'],
+        'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Realized Income'],
         'Realized Income to Net [%]' : 100.0 * summary['Realized Income'] / summary['Net'],
         'Total Tax Rate [%]' : 100.0 * summary['Tax'] / summary['Total Income'],
         'Realized Income Tax Rate [%]' : 100.0 * summary['Tax'] / summary['Realized Income'],
