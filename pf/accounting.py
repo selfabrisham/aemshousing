@@ -629,7 +629,7 @@ def calc_metrics(summary=None, swr=0.04):
         'Realized Income to Net [%]' : 100.0 * summary['Realized Income'] / summary['Net'],
         'Total Tax Rate [%]' : 100.0 * summary['Taxes'] / summary['Total Income'],
         'Realized Income Tax Rate [%]' : 100.0 * summary['Taxes'] / summary['Realized Income'],
-        'Tax to Net [%]' : 100.0 * summary['Tax'] / summary['Net'],
+        'Tax to Net [%]' : 100.0 * summary['Taxes'] / summary['Net'],
     })
 
     return metrics
