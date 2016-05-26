@@ -70,18 +70,20 @@ def read_in_accounts(filepath=''):
     accounts = xlxs['accounts']
     limits = xlxs['limits']
     loan = xlxs['loan']
-    taxes = xlxs['taxes']
+    incometaxes = xlxs['income taxes']
+    salestax = xlxs['sales tax']
 
     # Set Index name for later
     accounts.index.name = 'Date'
     limits.index.name = 'Date'
     loan.index.name = 'Date'
-    taxes.index.name = 'Date'
+    incometaxes.index.name = 'Date'
+    salestax.index.name = 'Date'
 
     # Clean up account data by user
     accounts = clean_accounts(accounts)
 
-    return (accounts, limits, loan, taxes)
+    return (accounts, limits, loan, incometaxes, salestax)
 
 ################################################################################################################################
 # Transaction Functions
