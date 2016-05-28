@@ -615,7 +615,9 @@ def calc_metrics(summary=None, swr=0.04):
     Calculate various metrics for personal finance (profit margin (SR), debt ratio, debt to income, time to FI).
     """
     # Create mean from month to month yearly estimates
-    summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']] = pd.expanding_mean(summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']])
+    summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']] = pd.expanding_mean(
+        summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']]
+    )
     # Calculate metrics
     metrics = pd.DataFrame({
         'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],
