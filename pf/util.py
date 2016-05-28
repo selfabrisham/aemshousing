@@ -94,7 +94,7 @@ class ProgressBar(object):
         return str(self.prog_bar)
 
 def make_pdf(model, params, size=10000):
-    """Generate model's Propbability Distribution Function """
+    """Generate model's Probability Distribution Function """
 
     # Separate parts of parameters
     arg = params[:-2]
