@@ -566,8 +566,11 @@ def summarize_accounts(accounts=None):
     account_summary.columns = ['Balance']
     account_summary.index.names = ['Type', 'Account']
 
-    # Calculate percentages of level 0
-    account_summary['% of Total'] = 100.0 * account_summary.div(account_summary.sum(level=0), level=0)
+    # Calculate percentages of type and total
+    percent_of_type = 100.0 * account_summary.div(account_summary.sum(level=0), level=0)
+    percent_of_total = 100.0 * account_summary.div(account_summary.sum(), level=0)
+    account_summary['% of Type'] = percent_of_type
+    account_summary['% of Total'] = percent_of_total
 
     # Calculate heirarchical totals
     l0_totals = account_summary.sum(level=[0])
