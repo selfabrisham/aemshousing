@@ -545,12 +545,12 @@ def calculate_growth(net_worth=None, offsets=None):
             # Store Info in Dictionary
             #pylint: disable=maybe-no-member
             growth.extend([
-                [offstr, final_date] + net_worth.loc[final][columns].values.tolist(),
-                [offstr, initial_date] + net_worth.loc[initial][columns].values.tolist(),
-                [offstr, 'Delta'] + delta.values.tolist(),
-                [offstr, 'Gain'] + gains.values.tolist(),
-                [offstr, 'Ann Gain'] + annualized_gains.values.tolist(),
-                [offstr, 'CAGR'] + cagr.values.tolist()
+                [offstr, final_date] + net_worth.loc[final][columns].round(2).values.tolist(),
+                [offstr, initial_date] + net_worth.loc[initial][columns].round(2).values.tolist(),
+                [offstr, 'Delta'] + delta.round(2).values.tolist(),
+                [offstr, 'Gain'] + gains.round(2).values.tolist(),
+                [offstr, 'Ann Gain'] + annualized_gains.round(2).values.tolist(),
+                [offstr, 'CAGR'] + cagr.round(2).values.tolist()
             ])
 
     # Convert to DataFrame
