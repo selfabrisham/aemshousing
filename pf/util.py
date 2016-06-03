@@ -94,8 +94,8 @@ class ProgressBar(object):
         """string representation"""
         return str(self.prog_bar)
 
-def make_pdf(model, params, size=10000):
-    """Generate model's Probability Distribution Function """
+def make_pdf(dist, params, size=10000):
+    """Generate distributions's Propbability Distribution Function """
 
     # Separate parts of parameters
     arg = params[:-2]
@@ -103,12 +103,12 @@ def make_pdf(model, params, size=10000):
     scale = params[-1]
 
     # Get sane start and end points of distribution
-    start = model.ppf(0.01, *arg, loc=loc, scale=scale) if arg else model.ppf(0.01, loc=loc, scale=scale)
-    end = model.ppf(0.99, *arg, loc=loc, scale=scale) if arg else model.ppf(0.99, loc=loc, scale=scale)
+    start = dist.ppf(0.01, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.01, loc=loc, scale=scale)
+    end = dist.ppf(0.99, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.99, loc=loc, scale=scale)
 
     # Build PDF and turn into pandas Series
     x = np.linspace(start, end, size)
-    y = model.pdf(x, loc=loc, scale=scale, *arg)
+    y = dist.pdf(x, loc=loc, scale=scale, *arg)
     pdf = pd.Series(y, x)
 
     return pdf
