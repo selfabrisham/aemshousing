@@ -61,9 +61,9 @@ def read_in_accounts(filepath=''):
         filepath,
         sheetname=None,
         index_col=0,
-        parse_dates=True,
-        header=[0, 1],
-        date_parser=parse_month_year_end
+        # parse_dates=True,
+        # date_parser=parse_month_year_end,
+        header=[0, 1]
     ).items()}
 
     # Separate out worksheet
