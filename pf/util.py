@@ -22,11 +22,12 @@ import sys
 import datetime
 import numpy as np
 import pandas as pd
+import scipy.stats as st
 
 from pf.constants import DAYS_IN_YEAR
 
 ################################################################################################################################
-# Helper Functions
+# General Helper/Conversion Functions
 ################################################################################################################################
 def parse_month_year_end(month_year=''):
     """Parse month/year to pandas datetimeindex at month's end"""
@@ -55,11 +56,14 @@ def f2as(x=0.0):
     else:
         return '{:0,.2f}'.format(x) if x >= 0 else '({:0,.2f})'.format(np.abs(x))
 
+################################################################################################################################
+# Progress Bar for interactive sanety during long calcualtions
+################################################################################################################################
 class ProgressBar(object):
-    """implements a comand-line progress bar"""
+    """Implements a comand-line progress bar"""
 
     def __init__(self, iterations):
-        """create a progress bar"""
+        """Create a progress bar"""
         self.iterations = iterations
         self.prog_bar = '[]'
         self.fill_char = '*'
@@ -67,20 +71,20 @@ class ProgressBar(object):
         self.__update_amount(0)
 
     def animate(self, iterate):
-        """animate progress"""
+        """Animate progress"""
         print '\r', self,
         sys.stdout.flush()
         self.update_iteration(iterate + 1)
         return self
 
     def update_iteration(self, elapsed_iter):
-        """increment progress"""
+        """Increment progress"""
         self.__update_amount((elapsed_iter / float(self.iterations)) * 100.0)
         self.prog_bar = '%s  %s of %s complete' % (self.prog_bar, elapsed_iter, self.iterations)
         return self
 
     def __update_amount(self, new_amount):
-        """update amout of progress"""
+        """Update amount of progress"""
         percent_done = int(round((new_amount / 100.0) * 100.0))
         all_full = self.width - 2
         num_hashes = int(round((percent_done / 100.0) * all_full))
@@ -91,9 +95,12 @@ class ProgressBar(object):
         return self
 
     def __str__(self):
-        """string representation"""
+        """String representation"""
         return str(self.prog_bar)
 
+################################################################################################################################
+# Stats Helper Functions
+################################################################################################################################
 def make_pdf(dist, params, size=10000):
     """Generate distributions's Propbability Distribution Function """
 
@@ -112,3 +119,56 @@ def make_pdf(dist, params, size=10000):
     pdf = pd.Series(y, x)
 
     return pdf
+
+# Create models from data
+def best_fit_distribution(data, bins=200):
+    """Model data by finding best fit distribution to data"""
+    # Get histogram of original data
+    y, x = np.histogram(data, bins=bins, normed=True)
+    x = [(a+x[i+1])/2.0 for i, a in enumerate(x[0:-1])]
+
+    # Distributions to check
+    DISTRIBUTIONS = [
+        st.alpha,st.anglit,st.arcsine,st.beta,st.betaprime,st.bradford,st.burr,st.cauchy,st.chi,st.chi2,st.cosine,st.dgamma,
+        st.dweibull,st.erlang,st.expon,st.exponnorm,st.exponweib,st.exponpow,st.f,st.fatiguelife,st.fisk,st.foldcauchy,
+        st.foldnorm,st.frechet_r,st.frechet_l,st.genlogistic,st.genpareto,st.gennorm,st.genexpon,st.genextreme,st.gausshyper,
+        st.gamma,st.gengamma,st.genhalflogistic,st.gilbrat,st.gompertz,st.gumbel_r,st.gumbel_l,st.halfcauchy,st.halflogistic,
+        st.halfnorm,st.halfgennorm,st.hypsecant,st.invgamma,st.invgauss,st.invweibull,st.johnsonsb,st.johnsonsu,st.ksone,
+        st.kstwobign,st.laplace,st.levy,st.levy_l,st.levy_stable,st.logistic,st.loggamma,st.loglaplace,st.lognorm,st.lomax,
+        st.maxwell,st.mielke,st.nakagami,st.ncx2,st.ncf,st.nct,st.norm,st.pareto,st.pearson3,st.powerlaw,st.powerlognorm,
+        st.powernorm,st.rdist,st.reciprocal,st.rayleigh,st.rice,st.recipinvgauss,st.semicircular,st.t,st.triang,st.truncexpon,
+        st.truncnorm,st.tukeylambda,st.uniform,st.vonmises,st.vonmises_line,st.wald,st.weibull_min,st.weibull_max,st.wrapcauchy
+    ]
+
+    # Best holders
+    best_distribution = st.norm
+    best_params = (0.0, 1.0)
+    best_sse = np.inf
+
+    # Estimate distribution parameters from data
+    for distribution in DISTRIBUTIONS:
+        # Try to fit the distribution
+        try:
+            # Ignore warnings from data that can't be fit
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore')
+                # Fit dist to data
+                params = distribution.fit(data)
+
+                # Separate parts of parameters
+                arg = params[:-2]
+                loc = params[-2]
+                scale = params[-1]
+                pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
+                sse = np.sum(np.power(y - pdf, 2.0))
+
+                # identify if this distribution is better
+                if best_sse > sse > 0:
+                    best_distribution = distribution
+                    best_params = params
+                    best_sse = sse
+
+        except Exception:
+            pass
+
+    return (best_distribution.name, best_params)
