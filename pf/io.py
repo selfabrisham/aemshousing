@@ -73,6 +73,13 @@ def read_in_accounts(filepath=''):
     incometaxes = xlxs['income taxes']
     salestax = xlxs['sales tax']
 
+    # Set Index to DatetimeIndex
+    accounts.index = accounts.index.map(parse_month_year_end)
+    limits.index = limits.index.map(parse_month_year_end)
+    loan.index = loan.index.map(parse_month_year_end)
+    incometaxes.index = incometaxes.index.map(parse_month_year_end)
+    salestax.index = salestax.index.map(parse_month_year_end)
+
     # Set Index name for later
     accounts.index.name = 'Date'
     limits.index.name = 'Date'
