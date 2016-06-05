@@ -159,6 +159,8 @@ def best_fit_distribution(data, bins=200):
                 arg = params[:-2]
                 loc = params[-2]
                 scale = params[-1]
+
+                # Calculate fitted PDF and error with fit
                 pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
                 sse = np.sum(np.power(y - pdf, 2.0))
 
