@@ -113,25 +113,25 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
     net.index.names = ['Category', 'Type', 'Item']
 
     # Add Net
-    balance = pd.concat([balance, net])
+    balance_df = pd.concat([balance, net])
 
     # Calculate percentages of level 0
-    balance['%'] = 100.0 * balance.div(balance.sum(level=0), level=0)
+    balance_df['%'] = 100.0 * balance_df.div(balance_df.sum(level=0), level=0)
 
     # Calculate heirarchical totals
-    l1_totals = balance.sum(level=[0, 1])
+    l1_totals = balance_df.sum(level=[0, 1])
     l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
     l1_totals.index.names = ['Category', 'Type', 'Item']
 
-    l0_totals = balance.sum(level=[0])
+    l0_totals = balance_df.sum(level=[0])
     l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
     l0_totals.index.names = ['Category', 'Type', 'Item']
 
     # Add totals to dataframe
-    balance = balance.combine_first(l1_totals)
-    balance = balance.combine_first(l0_totals)
+    balance_df = balance_df.combine_first(l1_totals)
+    balance_df = balance_df.combine_first(l0_totals)
 
-    return balance
+    return balance_df
 
 def calc_income(paychecks=None, transactions=None, category_dict=None):
     """
@@ -292,9 +292,9 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
     ]))
 
     # Add Net
-    income = pd.concat([income, net])
+    income_df = pd.concat([income, net])
 
-    return income
+    return income_df
 
 def calc_cashflow(transactions=None, category_dict=None):
     """
@@ -417,25 +417,25 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     net.index.names = ['Category', 'Type', 'Item']
 
     # Add Net
-    cashflow = pd.concat([cashflow, net])
+    cashflow_df = pd.concat([cashflow, net])
 
     # Calculate percentages of level 0
-    cashflow['%'] = 100.0 * cashflow.div(cashflow.sum(level=0), level=0)
+    cashflow_df['%'] = 100.0 * cashflow_df.div(cashflow_df.sum(level=0), level=0)
 
     # Calculate heirarchical totals
-    l1_totals = cashflow.sum(level=[0, 1])
+    l1_totals = cashflow_df.sum(level=[0, 1])
     l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
     l1_totals.index.names = ['Category', 'Type', 'Item']
 
-    l0_totals = cashflow.sum(level=[0])
+    l0_totals = cashflow_df.sum(level=[0])
     l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
     l0_totals.index.names = ['Category', 'Type', 'Item']
 
     # Add totals to dataframe
-    cashflow = cashflow.combine_first(l1_totals)
-    cashflow = cashflow.combine_first(l0_totals)
+    cashflow_df = cashflow_df.combine_first(l1_totals)
+    cashflow_df = cashflow_df.combine_first(l0_totals)
 
-    return cashflow
+    return cashflow_df
 
 ################################################################################################################################
 # Net Worth Calculations
@@ -554,9 +554,9 @@ def calculate_growth(net_worth=None, offsets=None):
             ])
 
     # Convert to DataFrame
-    growth = pd.DataFrame(growth, columns=['Period', 'Growth', 'Assets', 'Debts', 'Net']).set_index(['Period', 'Growth'])
+    growth_df = pd.DataFrame(growth, columns=['Period', 'Growth', 'Assets', 'Debts', 'Net']).set_index(['Period', 'Growth'])
 
-    return growth
+    return growth_df
 
 def summarize_accounts(accounts=None):
     """Summarize current accounts"""
@@ -590,7 +590,7 @@ def get_milestones(networth=None, milestones=None):
     milestone_data = []
     for milestone in milestones:
         gt_milestone = networth['Net'] >= milestone
-        milestone_date = gt_milestone[gt_milestone == True].index[0] if gt_milestone.any() else gt_milestone.index[-1]
+        milestone_date = gt_milestone[gt_milestone].index[0] if gt_milestone.any() else gt_milestone.index[-1]
         milestone_age = get_age(milestone_date)
         milestone_years = (milestone_date - datetime.datetime.today()).days / DAYS_IN_YEAR
         milestone_actual = networth['Net'].loc[milestone_date]

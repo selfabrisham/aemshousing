@@ -1,20 +1,22 @@
 
 pf Linting Report
-2016-05-28 15:23:31 -0700
+2016-06-06 06:20:31 -0700
 =========================================
 
+************* Module pf.util
+W:174,15: Catching too general exception Exception (broad-except)
+************* Module pf.io
+I:174, 0: Locally disabling bare-except (W0702) (locally-disabled)
+I:192, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
+I:192, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
 ************* Module pf.accounting
 I:361, 0: Locally disabling cell-var-from-loop (W0640) (locally-disabled)
 I:546, 0: Locally disabling no-member (E1101) (locally-disabled)
-************* Module pf.io
-I:167, 0: Locally disabling bare-except (W0702) (locally-disabled)
-I:185, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
-I:185, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
 
 
 Report
 ======
-496 statements analysed.
+531 statements analysed.
 
 Statistics by type
 ------------------
@@ -28,7 +30,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |5      |5          |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |27     |27         |=          |100.00      |0.00     |
+|function |28     |28         |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -39,8 +41,8 @@ External dependencies
 
     matplotlib (pf.plot)
       \-patches (pf.plot)
-    numpy (pf.accounting,pf.forecasting,pf.io,pf.plot,pf.util)
-    pandas (pf.accounting,pf.forecasting,pf.io,pf.plot,pf.util)
+    numpy (pf.accounting)
+    pandas (pf.accounting)
     pdfminer 
       \-converter (pf.io)
       \-layout (pf.io)
@@ -49,7 +51,10 @@ External dependencies
       \-pdfpage (pf.io)
       \-pdfparser (pf.io)
     pf 
-      \-constants (pf.accounting,pf.io,pf.util)
+      \-constants (pf.accounting)
+      \-util (pf.accounting)
+    scipy 
+      \-stats (pf.util)
 
 
 
@@ -59,13 +64,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |638    |47.33 |635      |+3.00      |
+|code      |689    |43.75 |689      |=          |
 +----------+-------+------+---------+-----------+
-|docstring |451    |33.46 |451      |=          |
+|docstring |451    |28.63 |451      |=          |
 +----------+-------+------+---------+-----------+
-|comment   |169    |12.54 |169      |=          |
+|comment   |227    |14.41 |227      |=          |
 +----------+-------+------+---------+-----------+
-|empty     |90     |6.68  |90       |=          |
+|empty     |208    |13.21 |208      |=          |
 +----------+-------+------+---------+-----------+
 
 
@@ -89,14 +94,25 @@ Messages by category
 +-----------+-------+---------+-----------+
 |type       |number |previous |difference |
 +===========+=======+=========+===========+
-|convention |0      |1        |-1.00      |
+|convention |0      |0        |=          |
 +-----------+-------+---------+-----------+
-|refactor   |0      |0        |=          |
+|refactor   |0      |4        |-4.00      |
 +-----------+-------+---------+-----------+
-|warning    |0      |0        |=          |
+|warning    |1      |1        |=          |
 +-----------+-------+---------+-----------+
-|error      |0      |1        |-1.00      |
+|error      |0      |0        |=          |
 +-----------+-------+---------+-----------+
+
+
+
+% errors / warnings by module
+-----------------------------
+
++--------+------+--------+---------+-----------+
+|module  |error |warning |refactor |convention |
++========+======+========+=========+===========+
+|pf.util |0.00  |100.00  |0.00     |0.00       |
++--------+------+--------+---------+-----------+
 
 
 
@@ -108,10 +124,12 @@ Messages
 +=================+============+
 |locally-disabled |5           |
 +-----------------+------------+
+|broad-except     |1           |
++-----------------+------------+
 
 
 
 Global evaluation
 -----------------
-Your code has been rated at 10.00/10 (previous run: 9.88/10, +0.12)
+Your code has been rated at 9.98/10 (previous run: 9.91/10, +0.08)
 

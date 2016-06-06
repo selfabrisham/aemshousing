@@ -20,9 +20,9 @@ credits    :
 
 import re
 import glob
+import cStringIO
 import numpy as np
 import pandas as pd
-import cStringIO
 
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument

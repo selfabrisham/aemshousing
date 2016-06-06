@@ -103,32 +103,32 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
 
         # Loop thru datapoints
         for c, x, y in sorted(datapoints.values, key=lambda x: x[2]):
-            if True: # y != 0:
-                xyloc = (x, y)
+            # if True: # y != 0:
+            xyloc = (x, y)
 
-                ax.scatter(x - pd.DateOffset(months=1), y, color=colors[columns.index(c)])
+            ax.scatter(x - pd.DateOffset(months=1), y, color=colors[columns.index(c)])
 
-                # If inside another annotation spread
-                while any([bb.contains(*ax.transData.transform((ax.convert_xunits(xyloc[0]), xyloc[1]))) for bb in ann_bb]):
-                    xyloc = (xyloc[0], xyloc[1] + step_size)
+            # If inside another annotation spread
+            while any([bb.contains(*ax.transData.transform((ax.convert_xunits(xyloc[0]), xyloc[1]))) for bb in ann_bb]):
+                xyloc = (xyloc[0], xyloc[1] + step_size)
 
-                # Annotate the datapoint
-                ann = ax.annotate(
-                    f2as(y),
-                    xy=xyloc,
-                    xytext=(1, -11),
-                    color=colors[columns.index(c)],
-                    textcoords='offset points',
-                    size=16,
-                    verticalalignment='middle'
-                )
-                # Render Text so we can get bounding box
-                ax.figure.canvas.draw()
-                # Growth bounding box by 2%
-                bb = ann.get_window_extent()
-                bb_new = matplotlib.transforms.Bbox(bb.get_points() * np.array([[0.98, 0.98], [1.02, 1.02]]))
-                # Log bounding box
-                ann_bb.append(bb_new)
+            # Annotate the datapoint
+            ann = ax.annotate(
+                f2as(y),
+                xy=xyloc,
+                xytext=(1, -11),
+                color=colors[columns.index(c)],
+                textcoords='offset points',
+                size=16,
+                verticalalignment='middle'
+            )
+            # Render Text so we can get bounding box
+            ax.figure.canvas.draw()
+            # Growth bounding box by 2%
+            bb = ann.get_window_extent()
+            bb_new = matplotlib.transforms.Bbox(bb.get_points() * np.array([[0.98, 0.98], [1.02, 1.02]]))
+            # Log bounding box
+            ann_bb.append(bb_new)
 
     ax.legend(loc='upper center', ncol=3, handles=[
         mpatches.Patch(
