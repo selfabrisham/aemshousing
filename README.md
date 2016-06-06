@@ -33,7 +33,7 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
     - [x] Net worth calculator
     - [x] Growth calculator & analyzer
     - [x] Milestone status
-    - [x] Performance metrics (DTI, Margin a.k.a Savings Rate, Income to Net, etc.)
+    - [x] Performance metrics (DTI, Margin/Savings Rate, Income to Net, etc.)
 - [ ] Account Forecasting
     - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) modeling
     - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) forecasting
