@@ -172,7 +172,7 @@ def best_fit_distribution(data, bins=200):
                     best_params = params
                     best_sse = sse
 
-        except Exception, err:
-            print err
+        except Exception:
+            pass
 
     return (best_distribution.name, best_params)
