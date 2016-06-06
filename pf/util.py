@@ -125,7 +125,7 @@ def best_fit_distribution(data, bins=200):
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
     y, x = np.histogram(data, bins=bins, normed=True)
-    x = (x + x.shift(-1))[:-1].div(2.0)
+    x = (x + np.roll(x, -1))[:-1] / 2.0
 
     # Distributions to check
     DISTRIBUTIONS = [
