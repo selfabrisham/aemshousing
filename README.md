@@ -33,6 +33,7 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
     - [x] Net worth calculator
     - [x] Growth calculator & analyzer
     - [x] Milestone status
+    - [x] Performance metrics (DTI, Margin a.k.a Savings Rate, Income to Net, etc.)
 - [ ] Account Forecasting
     - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) modeling
     - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) forecasting
@@ -53,7 +54,7 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
     - [ ] Monthly
 - [ ] Example Average Data (Useful for Comparisons)
     - [x] Extract personal finance data from [FRED](https://research.stlouisfed.org/fred2/downloaddata/)
-    - [ ] Create semi-random personal finance models
+    - [x] :pencil: Create semi-random personal finance models
 
 ## Examples
 
