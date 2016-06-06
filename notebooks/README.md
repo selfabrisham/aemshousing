@@ -1,6 +1,6 @@
 # Notebooks
 
-This folder contains examples [jupyter](https://jupyter.org) notebooks for using `pccompute`.
+This folder contains examples [jupyter](https://jupyter.org) notebooks for using `pfcompute`.
 
 ### [Get average personal income and expense from FRED data](Get%20average%20personal%20income%20and%20expense%20from%20FRED%20data.ipynb)
 

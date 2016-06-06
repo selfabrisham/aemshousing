@@ -97,7 +97,7 @@ def assumption_fi_forecast(
 
         if fi:
             # stop income
-            income = 0
+            income = np.nan
         elif i > 0:
             # Add yearly savings
             cashflow_table.loc[i, 'Balance'] += yearly_savings
