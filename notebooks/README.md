@@ -2,6 +2,14 @@
 
 This folder contains examples [jupyter](https://jupyter.org) notebooks for using `pfcompute`.
 
+## Examples
+
+### [Assumption Based Financial Independence Forecast](https://github.com/tmthydvnprt/pfcompute/blob/master/notebooks/Assumption%20Based%20Financial%20Independence%20Forecast.ipynb)
+
+Notebook for determining year until Financial Independence (Safe withdrawal rate exceeds expenses).  This calculation is purely assumption based, meaning it relies on assumed values and numbers rather than actual historical data.  It is for understanding concepts and for rough top level planning.
+
+## Example Data Generation
+
 ### [Get average personal income and expense from FRED data](Get%20average%20personal%20income%20and%20expense%20from%20FRED%20data.ipynb)
 
 Notebook for extracting personal income and expense data from the total [FRED data download](https://research.stlouisfed.org/fred2/downloaddata/).  The code first parses the index `.csv`, filtering on various dates and categories, to obtain file paths to the desired data and then loops thru the `data/` directory to read in each time series `.csv`.  The data is placed into one nice `MultiIndex` pandas `DataFrame`, missing data is interpolated and extrapolated. The data represents national monthly (row) aggregates for personal finance categories (column), which is then divided by the national population to calculate the monthly average or per capita total for each category. Finally, the data is plotted to quickly test the import. Th filtered and processed data is saved as a `csv` for further use.  This notebook is placed here to explain how to recreate average, fake, example personal finance data from raw FRED data.
