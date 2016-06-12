@@ -1,10 +1,8 @@
 
 pf Linting Report
-2016-06-06 06:20:31 -0700
+2016-06-12 05:17:50 -0700
 =========================================
 
-************* Module pf.util
-W:174,15: Catching too general exception Exception (broad-except)
 ************* Module pf.io
 I:174, 0: Locally disabling bare-except (W0702) (locally-disabled)
 I:192, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
@@ -12,11 +10,13 @@ I:192, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
 ************* Module pf.accounting
 I:361, 0: Locally disabling cell-var-from-loop (W0640) (locally-disabled)
 I:546, 0: Locally disabling no-member (E1101) (locally-disabled)
+************* Module pf.util
+W:175,15: Catching too general exception Exception (broad-except)
 
 
 Report
 ======
-531 statements analysed.
+558 statements analysed.
 
 Statistics by type
 ------------------
@@ -30,7 +30,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |5      |5          |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |28     |28         |=          |100.00      |0.00     |
+|function |30     |30         |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -41,8 +41,8 @@ External dependencies
 
     matplotlib (pf.plot)
       \-patches (pf.plot)
-    numpy (pf.accounting)
-    pandas (pf.accounting)
+    numpy (pf.util)
+    pandas (pf.util)
     pdfminer 
       \-converter (pf.io)
       \-layout (pf.io)
@@ -51,10 +51,12 @@ External dependencies
       \-pdfpage (pf.io)
       \-pdfparser (pf.io)
     pf 
-      \-constants (pf.accounting)
-      \-util (pf.accounting)
+      \-constants (pf.util)
     scipy 
       \-stats (pf.util)
+    statsmodels 
+      \-tsa 
+        \-arima_model (pf.forecasting)
 
 
 
@@ -64,13 +66,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |689    |43.75 |689      |=          |
+|code      |720    |44.33 |720      |=          |
 +----------+-------+------+---------+-----------+
-|docstring |451    |28.63 |451      |=          |
+|docstring |453    |27.89 |453      |=          |
 +----------+-------+------+---------+-----------+
-|comment   |227    |14.41 |227      |=          |
+|comment   |233    |14.35 |233      |=          |
 +----------+-------+------+---------+-----------+
-|empty     |208    |13.21 |208      |=          |
+|empty     |218    |13.42 |218      |=          |
 +----------+-------+------+---------+-----------+
 
 
@@ -96,11 +98,11 @@ Messages by category
 +===========+=======+=========+===========+
 |convention |0      |0        |=          |
 +-----------+-------+---------+-----------+
-|refactor   |0      |4        |-4.00      |
+|refactor   |0      |0        |=          |
 +-----------+-------+---------+-----------+
 |warning    |1      |1        |=          |
 +-----------+-------+---------+-----------+
-|error      |0      |0        |=          |
+|error      |0      |1        |-1.00      |
 +-----------+-------+---------+-----------+
 
 
@@ -131,5 +133,5 @@ Messages
 
 Global evaluation
 -----------------
-Your code has been rated at 9.98/10 (previous run: 9.91/10, +0.08)
+Your code has been rated at 9.98/10 (previous run: 9.89/10, +0.09)
 

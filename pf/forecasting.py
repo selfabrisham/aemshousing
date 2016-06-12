@@ -25,6 +25,8 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima_model import ARIMA
 
+from pf.constants import ARIMA_ORDERS
+
 ################################################################################################################################
 # Assumption Based Forecasting
 ################################################################################################################################
@@ -120,9 +122,7 @@ def assumption_fi_forecast(
 # Modeled Forecasting
 ################################################################################################################################
 def arima_model(accounts):
-
-    # Local Constants
-    ARIMA_ORDERS = [(3, 2, 1), (2, 2, 1), (2, 1, 1), (1, 1, 1), (1, 1, 0), (1, 0, 0)]
+    """Fit ARIMA models for each account"""
 
     # Model each account
     account_models = {}
@@ -139,7 +139,7 @@ def arima_model(accounts):
                 results = model.fit()
                 modeled = True
                 account_models[(account_type, account)] = results
-            except:
+            except  (ValueError, np.linalg.LinAlgError):
                 order += 1
 
     return account_models
@@ -150,13 +150,10 @@ def arima_forecast(account_models, start, **kwds):
     # Determine times
     forecast_start = start
     forecast_end = start + pd.DateOffset(**kwds)
-    forecast_dates = pd.date_range(forecast_start, forecast_end, freq='MS')
 
     # Forecast each account
-    accounts_forecast = pd.DataFrame(columns=accounts.columns)
+    accounts_forecast = pd.DataFrame(columns=account_models.columns)
     for account_type, account in accounts_forecast:
-        account_data = accounts[(account_type, account)]
-        account_data.name = account
 
         accounts_forecast[(account_type, account)] = account_models[(account_type, account)].predict(
             start=str(forecast_start.date()),
