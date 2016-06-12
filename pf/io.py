@@ -396,12 +396,12 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser):
 
     return paycheck_df.round(2)
 
-def read_paycheck(filepath=''):
+def read_paychecks_file(filepath=''):
     """Store Paycheck file so that PDFs do not have to be parsed everytime"""
     df = pd.read_csv(filepath, index_col=0, parse_dates=True)
     return df
 
-def write_paycheck(paychecks, filepath=''):
+def write_paychecks_file(paychecks, filepath=''):
     """Store Paycheck file so that PDFs do not have to be parsed everytime"""
 
     paychecks.to_csv(filepath)
