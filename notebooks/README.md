@@ -6,7 +6,7 @@ This folder contains examples [jupyter](https://jupyter.org) notebooks for using
 
 ### [Assumption Based Financial Independence Forecast](https://github.com/tmthydvnprt/pfcompute/blob/master/notebooks/Assumption%20Based%20Financial%20Independence%20Forecast.ipynb)
 
-Notebook for determining year until Financial Independence (Safe withdrawal rate exceeds expenses).  This calculation is purely assumption based, meaning it relies on assumed values and numbers rather than actual historical data.  It is for understanding concepts and for rough top level planning.
+Notebook for determining year until Financial Independence (safe withdrawal rate exceeds expenses).  This calculation is purely assumption based, meaning it relies on assumed values and numbers rather than actual historical data.  It is for understanding concepts and for rough top level planning.
 
 ## Example Data Generation
 
