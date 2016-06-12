@@ -152,7 +152,7 @@ def arima_forecast(account_models, start, **kwds):
     forecast_end = start + pd.DateOffset(**kwds)
 
     # Forecast each account
-    accounts_forecast = pd.DataFrame(columns=account_models.columns)
+    accounts_forecast = pd.DataFrame(columns=account_models.keys())
     for account_type, account in accounts_forecast:
 
         accounts_forecast[(account_type, account)] = account_models[(account_type, account)].predict(
