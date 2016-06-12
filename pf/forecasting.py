@@ -23,6 +23,7 @@ credits    :
 
 import numpy as np
 import pandas as pd
+import scipy.stats as st
 from statsmodels.tsa.arima_model import ARIMA
 
 from pf.constants import ARIMA_ORDERS
@@ -162,3 +163,72 @@ def arima_forecast(account_models, start, **kwds):
         )
 
     return accounts_forecast
+
+def dist_fit_model(accounts):
+    """Build models for each account based on log change"""
+
+    # Model each account
+    account_models = {}
+    for account_type, account in accounts:
+
+        # Compute monthly change, ignoring Infs and NaNs
+        account_pct_change = np.log(accounts[(account_type, account)]) \
+            .pct_change() \
+            .replace([-1.0, -np.inf, np.inf], np.nan) \
+            .dropna()
+        # Generate model
+        model, params = pf.util.best_fit_distribution(account_pct_change)
+        account_models[(account_type, account)] = (model, params)
+
+    return account_models
+
+def monte_carlo_forecast(accounts, account_models, start, number_of_runs=1000, **kwds):
+    """Forecast accounts with Monte Carlo method from fit distributions"""
+
+    # Determine times
+    forecast_start = start
+    forecast_end = start + pd.DateOffset(**kwds)
+    forecast_dates = pd.date_range(forecast_start, forecast_end, freq='MS')
+
+    # Empty Panel to store Monte Carlo runs
+    account_forecast_runs = pd.Panel(
+        data=np.zeros((number_of_runs, len(forecast_dates), len(account_models.keys()))),
+        items=range(number_of_runs),
+        major_axis=forecast_dates,
+        minor_axis=account_models.keys()
+    )
+
+    # Forecast each account
+    accounts_forecast = pd.DataFrame(columns=account_models.keys())
+    for account_type, account in accounts_forecast:
+
+        # Get initial account value
+        init_value = accounts[(account_type, account)].iloc[-1]
+        if any(init_value == _ for _ in [np.inf, -np.inf, np.nan]):
+            init_value = 1.0
+
+        # Get model
+        model_name, params = account_models[(account_type, account)]
+        model = getattr(st, model_name)
+
+        if model:
+            arg = params[:-2]
+            loc = params[-2]
+            scale = params[-1]
+
+            # Forecast into future with Monte Carlo
+            for run in xrange(number_of_runs):
+                # Generate random variables
+                forecast_rvs = model.rvs(loc=loc, scale=scale, size=len(forecast_dates), *arg)
+                # Create Series of percent changes from random variables
+                forecast_pct_change = pd.Series(forecast_rvs, index=forecast_dates)
+                # Clip unrealistic changes larger than +/-50% in once month
+                forecast_pct_change = forecast_pct_change.clip(-0.5,0.5)
+                # Forecast account as monthly percent change from last known account value
+                forecast_pct = np.exp(forecast_pct_change.copy())
+                forecast_pct[0] = forecast_pct[0] * init_value
+                forecast = forecast_pct.cumprod()
+                # Add to run storage
+                account_forecast_runs[run][(account_type, account)] = forecast
+
+    return account_forecast_runs

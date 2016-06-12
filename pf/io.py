@@ -394,4 +394,14 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser):
     # Parse paycheck data with user defined function
     paycheck_df = parser(paycheck_dict)
 
-    return paycheck_df
+    return paycheck_df.round(2)
+
+def read_paycheck(filepath=''):
+    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
+    df = pd.read_csv(filepath, index_col=0, parse_dates=True)
+    return df
+
+def write_paycheck(paychecks, filepath=''):
+    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
+
+    paychecks.to_csv(filepath)

@@ -35,13 +35,13 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
     - [x] Milestone status
     - [x] Performance metrics (DTI, Margin/Savings Rate, Income to Net, etc.)
 - [ ] Account Forecasting
-    - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) modeling
-    - [x] :pencil: Autoregressive Integrated Moving Average (ARIMA) forecasting
-    - [x] :pencil: Maximum Likelihood Estimator (MLE) distribution modeling
+    - [x] Autoregressive Integrated Moving Average (ARIMA) modeling
+    - [x] Autoregressive Integrated Moving Average (ARIMA) forecasting
+    - [x] Sum of Square Error (SSE) distribution modeling
     - [x] :pencil: Monte Carlo forecasting
 - [x] Assumption Based Forecasting
     - [x] Assumption (savings rate, expense, growth) modeler
-- [ ] Investing Forecasting
+- [ ] Investment Forecasting
     - [ ] Index (e.g. [Vanguard](https://investor.vanguard.com/home/)) based asset data
     - [ ] Asset allocation correlation
     - [ ] Asset allocation modeling
@@ -53,7 +53,7 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
     - [ ] Annual
     - [ ] Monthly
 - [ ] Example Average Data (Useful for Comparisons)
-    - [x] Extract personal finance data from [FRED](https://research.stlouisfed.org/fred2/downloaddata/)
+    - [x] Extracted personal finance data from [FRED](https://research.stlouisfed.org/fred2/downloaddata/)
     - [x] :pencil: Create semi-random personal finance models
 
 ## Examples
