@@ -153,6 +153,15 @@ def read_in_transactions(filepath=''):
 ################################################################################################################################
 # Paycheck Functions
 ################################################################################################################################
+def read_paychecks_file(filepath=''):
+    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
+    df = pd.read_csv(filepath, index_col=0, parse_dates=True)
+    return df
+
+def write_paychecks_file(paychecks, filepath=''):
+    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
+    paychecks.to_csv(filepath)
+
 def text2listoflists(text=''):
     """
     Convert text to list of lists.
@@ -322,7 +331,7 @@ def paycheck_parser(paychecks_dict=None):
 
     return paycheck_df
 
-def read_in_paychecks(filepaths='', password='', parser=paycheck_parser):
+def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=True):
     """
     Read in all the paychecks from a directory full of PDFs and returns DataFrame. If a password is supplied encrypted PDFs CAN
     be read. PDFs are converted to text lines, which are assumed to be mostly tabular and converted to lists of lists using
@@ -338,70 +347,74 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser):
     ```
     """
 
-    # Get PDFs from directory
+    # Get PDFs from directory and check for cached file
     paycheckfiles = glob.glob(filepaths)
+    paycheck_cache_file = os.path.dirname(filepaths) + '.csv'
+    cached = os.path.exists(paycheck_cache_file)
 
-    # Read in paycheck data to dictionaryw
-    paycheck_dict = {}
-    for paycheckfile in paycheckfiles:
+    # Read in cached file if it exists
+    if cache and cached:
+        paycheck_df = read_paychecks_file(paycheck_cache_file)
 
-        # Open a PDF file
-        fp = open(paycheckfile, 'rb')
-        # Get the date
-        date = DATE_RE.findall(paycheckfile)[0]
+    # Read paycheck data if need be (not cached or new paycheck)
+    if ~cache or ~cached or len(paycheckfiles) > len(paycheck_df):
+        # Read in paycheck data to dictionary
+        paycheck_dict = {}
+        for paycheckfile in paycheckfiles:
 
-        # Create string to put PDF
-        output = cStringIO.StringIO()
+            # Open a PDF file
+            fp = open(paycheckfile, 'rb')
+            # Get the date
+            date = DATE_RE.findall(paycheckfile)[0]
 
-        # Create a PDF parser object associated with the file object.
-        pdfparser = PDFParser(fp)
+            # Create string to put PDF
+            output = cStringIO.StringIO()
 
-        # Create a PDF document object that stores the document structure. Supply the password for initialization.
-        document = PDFDocument(pdfparser, password)
+            # Create a PDF parser object associated with the file object.
+            pdfparser = PDFParser(fp)
 
-        # Check if the document allows text extraction. If not, abort.
-        if not document.is_extractable:
-            raise PDFTextExtractionNotAllowed
+            # Create a PDF document object that stores the document structure. Supply the password for initialization.
+            document = PDFDocument(pdfparser, password)
 
-        # Create a PDF resource manager object that stores shared resources.
-        manager = PDFResourceManager()
+            # Check if the document allows text extraction. If not, abort.
+            if not document.is_extractable:
+                raise PDFTextExtractionNotAllowed
 
-        # Create a PDF converter object.
-        converter = TextConverter(manager, output, laparams=LAParams())
+            # Create a PDF resource manager object that stores shared resources.
+            manager = PDFResourceManager()
 
-        # Create a PDF interpreter object.
-        interpreter = PDFPageInterpreter(manager, converter)
+            # Create a PDF converter object.
+            converter = TextConverter(manager, output, laparams=LAParams())
 
-        # Process each page contained in the document.
-        pages = list(PDFPage.create_pages(document))
-        interpreter.process_page(pages[0])
+            # Create a PDF interpreter object.
+            interpreter = PDFPageInterpreter(manager, converter)
 
-        # Get text
-        text = output.getvalue()
+            # Process each page contained in the document.
+            pages = list(PDFPage.create_pages(document))
+            interpreter.process_page(pages[0])
 
-        # Close up file objects
-        pdfparser.close()
-        fp.close()
-        converter.close()
-        output.close()
+            # Get text
+            text = output.getvalue()
 
-        # Convert to list of lists
-        paycheck_lists = text2listoflists(text)
+            # Close up file objects
+            pdfparser.close()
+            fp.close()
+            converter.close()
+            output.close()
 
-        # Add to dictionary
-        paycheck_dict[date] = paycheck_lists
+            # Convert to list of lists
+            paycheck_lists = text2listoflists(text)
 
-    # Parse paycheck data with user defined function
-    paycheck_df = parser(paycheck_dict)
+            # Add to dictionary
+            paycheck_dict[date] = paycheck_lists
 
-    return paycheck_df.round(2)
+        # Parse paycheck data with user defined function
+        paycheck_df = parser(paycheck_dict)
 
-def read_paychecks_file(filepath=''):
-    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
-    df = pd.read_csv(filepath, index_col=0, parse_dates=True)
-    return df
+        # Enforce penny
+        paycheck_df = paycheck_df.round(2)
 
-def write_paychecks_file(paychecks, filepath=''):
-    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
+        if cache:
+            write_paychecks_file(paychecks, paychecks_file)
 
-    paychecks.to_csv(filepath)
+    return paycheck_df
