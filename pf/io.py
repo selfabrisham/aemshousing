@@ -19,6 +19,7 @@ credits    :
 """
 
 import re
+import os
 import glob
 import cStringIO
 import numpy as np
@@ -61,8 +62,6 @@ def read_in_accounts(filepath=''):
         filepath,
         sheetname=None,
         index_col=0,
-        # parse_dates=True,
-        # date_parser=parse_month_year_end,
         header=[0, 1]
     ).items()}
 
@@ -415,6 +414,6 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=T
         paycheck_df = paycheck_df.round(2)
 
         if cache:
-            write_paychecks_file(paychecks, paychecks_file)
+            write_paychecks_file(paycheck_df, paycheck_cache_file)
 
     return paycheck_df
