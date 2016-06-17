@@ -20,9 +20,10 @@ credits    :
 
 import re
 import os
+import ast
 import glob
-import cStringIO
 import hashlib
+import cStringIO
 import numpy as np
 import pandas as pd
 
@@ -135,6 +136,7 @@ def read_in_transactions(filepath='', cache=True):
     # Read in cached file if it exists
     if cache and cached:
         transactions = read_date_csv_file(transactions_cache_file)
+        transactions['labels'] = transactions['labels'].apply(lambda x: set(ast.literal_eval(x)))
         last_hash = transactions.ix[0, 'checksum']
         transactions = transactions.drop('checksum', 1)
     else:
@@ -169,7 +171,9 @@ def read_in_transactions(filepath='', cache=True):
 
         if cache:
             transactions.ix[0, 'checksum'] = transaction_hash
+            transactions['labels'] = transactions['labels'].apply(lambda x: list(x))
             transactions.to_csv(transactions_cache_file)
+            transactions['labels'] = transactions['labels'].apply(lambda x: set(x))
             transactions = transactions.drop('checksum', 1)
 
     return transactions
