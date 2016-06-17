@@ -356,7 +356,7 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=T
         paycheck_df = read_paychecks_file(paycheck_cache_file)
 
     # Read paycheck data if need be (not cached or new paycheck)
-    if ~cache or ~cached or len(paycheckfiles) > len(paycheck_df):
+    if not cache or not cached or len(paycheckfiles) > len(paycheck_df):
         # Read in paycheck data to dictionary
         paycheck_dict = {}
         for paycheckfile in paycheckfiles:

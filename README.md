@@ -17,7 +17,7 @@ Since `pfcompute` does not aggregate or collect it's own data, it requires data 
 They can really be in any format (`xls(x)`, `csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  The data [format](#data-format) and some collection [ideas](#data-ideas) are described below.
 
 ## Features
-The following checklist describes the current (`[x]`) and future (`[ ]`) capabilities of `pfcompute`:
+The following checklist describes the current (`[x]`) and future (`[ ]`) capabilities of `pfcompute` and what is currently (:pencil:) being worked on:
 
 - [x] Data input
     - [x] Import convenience functions
@@ -49,9 +49,12 @@ The following checklist describes the current (`[x]`) and future (`[ ]`) capabil
 - [ ] Visualization
     - [x] Time series plotting
     - [x] Probability Distribution Function (PDF) plotting
+    - [ ] :pencil: Sankey Money Flow Diagrams
 - [ ] Report Generation
     - [ ] Annual
     - [ ] Monthly
+    - [ ] `html`
+    - [ ] `pdf`    
 - [ ] Example Average Data (Useful for Comparisons)
     - [x] Extracted personal finance data from [FRED](https://research.stlouisfed.org/fred2/downloaddata/)
     - [x] :pencil: Create semi-random personal finance models
