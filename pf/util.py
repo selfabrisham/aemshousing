@@ -57,6 +57,11 @@ def f2as(x=0.0):
     else:
         return '{:0,.2f}'.format(x) if x >= 0 else '({:0,.2f})'.format(np.abs(x))
 
+def read_date_csv_file(filepath=''):
+    """Convinience function for reading standard date index csv"""
+    df = pd.read_csv(filepath, index_col=0, parse_dates=True)
+    return df
+
 ################################################################################################################################
 # Progress Bar for interactive sanety during long calcualtions
 ################################################################################################################################

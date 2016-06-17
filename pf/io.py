@@ -22,6 +22,7 @@ import re
 import os
 import glob
 import cStringIO
+import hashlib
 import numpy as np
 import pandas as pd
 
@@ -33,7 +34,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
 
 from pf.constants import DATE_RE
-from pf.util import parse_month_year_end, parse_month_day_dates
+from pf.util import parse_month_year_end, parse_month_day_dates, read_date_csv_file
 
 ################################################################################################################################
 # Account Functions
@@ -113,7 +114,7 @@ def clean_transactions(transactions=None):
 
     return transactions
 
-def read_in_transactions(filepath=''):
+def read_in_transactions(filepath='', cache=True):
     """
     Read in the data file containing all transaction details, this should be a json file from mint.com, or the function should
     overriden by the user.
@@ -127,40 +128,55 @@ def read_in_transactions(filepath=''):
 
     """
 
-    # Read Transaction info
-    transactions = pd.read_json(filepath, orient='records').set_index('date')
-    # Correct Dates for index
-    transactions.index = pd.DatetimeIndex([parse_month_day_dates(d) for d in transactions.index], name='Date')
+    # Get filepaths
+    transactions_cache_file = os.path.splitext(filepath)[0] + '.csv'
+    cached = os.path.exists(transactions_cache_file)
 
-    # Process labels
-    transactions['labels'] = [{label['name'] for label in transaction} for transaction in transactions['labels']]
+    # Read in cached file if it exists
+    if cache and cached:
+        transactions = read_date_csv_file(transactions_cache_file)
+        last_hash = transactions.ix[0, 'checksum']
+        transactions = transactions.drop('checksum', 1)
+    else:
+        last_hash = ''
+        transactions = None
 
-    # Remove duplicate transactions
-    transactions = transactions[np.invert(transactions.isDuplicate)]
+    # Read Input Transaction info hash
+    transaction_hash = hashlib.md5(filepath).hexdigest()
 
-    # Convert amount from dollar strings to floats
-    transactions['amount'] = transactions['amount'].str.replace('$', '').str.replace(',', '').astype(float)
+    # Read paycheck data if need be (not cached or update transactions)
+    if not cache or not cached or transaction_hash != last_hash:
 
-    # Set debit transactions as negative
-    transactions.loc[transactions.isDebit, 'amount'] = -1.0 * transactions.loc[transactions.isDebit, 'amount']
+        # Read Transaction info
+        transactions = pd.read_json(filepath, orient='records').set_index('date')
+        # Correct Dates for index
+        transactions.index = pd.DatetimeIndex([parse_month_day_dates(d) for d in transactions.index], name='Date')
 
-    # Clean up transaction data by user
-    transactions = clean_transactions(transactions)
+        # Process labels
+        transactions['labels'] = [{label['name'] for label in transaction} for transaction in transactions['labels']]
+
+        # Remove duplicate transactions
+        transactions = transactions[np.invert(transactions.isDuplicate)]
+
+        # Convert amount from dollar strings to floats
+        transactions['amount'] = transactions['amount'].str.replace('$', '').str.replace(',', '').astype(float)
+
+        # Set debit transactions as negative
+        transactions.loc[transactions.isDebit, 'amount'] = -1.0 * transactions.loc[transactions.isDebit, 'amount']
+
+        # Clean up transaction data by user
+        transactions = clean_transactions(transactions)
+
+        if cache:
+            transactions.ix[0, 'checksum'] = transaction_hash
+            transactions.to_csv(transactions_cache_file)
+            transactions = transactions.drop('checksum', 1)
 
     return transactions
 
 ################################################################################################################################
 # Paycheck Functions
 ################################################################################################################################
-def read_paychecks_file(filepath=''):
-    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
-    df = pd.read_csv(filepath, index_col=0, parse_dates=True)
-    return df
-
-def write_paychecks_file(paychecks, filepath=''):
-    """Store Paycheck file so that PDFs do not have to be parsed everytime"""
-    paychecks.to_csv(filepath)
-
 def text2listoflists(text=''):
     """
     Convert text to list of lists.
@@ -353,7 +369,7 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=T
 
     # Read in cached file if it exists
     if cache and cached:
-        paycheck_df = read_paychecks_file(paycheck_cache_file)
+        paycheck_df = read_date_csv_file(paycheck_cache_file)
 
     # Read paycheck data if need be (not cached or new paycheck)
     if not cache or not cached or len(paycheckfiles) > len(paycheck_df):
@@ -414,6 +430,6 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=T
         paycheck_df = paycheck_df.round(2)
 
         if cache:
-            write_paychecks_file(paycheck_df, paycheck_cache_file)
+            paycheck_df.to_csv(filepath)
 
     return paycheck_df
