@@ -92,6 +92,8 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
     column selectors, e.g. `Account Type` for single index column / level 0 access or `('Cash', 'Account Name')` for
     multilevel indexing.
 
+    If a sequence of periods is passed, each period's data will be calculated and concatenated as MultiIndex columns.
+
     Example:
     ```
     balance = calc_balance(accounts, category_dict=categories)
@@ -99,39 +101,54 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
     ```
     """
 
-    # Force period to string
-    period = str(period)
+    # Force to list, so code below is the same for all cases
+    if not isinstance(period, list):
+        period = [period]
 
-    # Sum over Period and convert to Statement DataFrame
-    balance = pd.DataFrame(balance[period].iloc[-1])
-    balance.columns = ['$']
-    balance.index.names = ['Category', 'Type', 'Item']
+    balance_sheets_df = []
+    for p in period:
+        # Force period to string
+        p = str(p)
 
-    # Calculate Net
-    net = balance[['$']].sum(level=[0, 1]).sum(level=1)
-    net.index = pd.MultiIndex.from_tuples([('Net', x0, 'Total') for x0 in net.index])
-    net.index.names = ['Category', 'Type', 'Item']
+        # Sum over Period and convert to Statement DataFrame
+        p_balance = pd.DataFrame(balance[p].iloc[-1])
+        p_balance.columns = ['$']
+        p_balance.index.names = ['Category', 'Type', 'Item']
 
-    # Add Net
-    balance_df = pd.concat([balance, net])
+        # Calculate Net
+        net = p_balance[['$']].sum(level=[0, 1]).sum(level=1)
+        net.index = pd.MultiIndex.from_tuples([('Net', x0, 'Total') for x0 in net.index])
+        net.index.names = ['Category', 'Type', 'Item']
 
-    # Calculate percentages of level 0
-    balance_df['%'] = 100.0 * balance_df.div(balance_df.sum(level=0), level=0)
+        # Add Net
+        balance_df = pd.concat([p_balance, net])
 
-    # Calculate heirarchical totals
-    l1_totals = balance_df.sum(level=[0, 1])
-    l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
-    l1_totals.index.names = ['Category', 'Type', 'Item']
+        # Calculate percentages of level 0
+        balance_df['%'] = 100.0 * balance_df.div(balance_df.sum(level=0), level=0)
 
-    l0_totals = balance_df.sum(level=[0])
-    l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
-    l0_totals.index.names = ['Category', 'Type', 'Item']
+        # Calculate heirarchical totals
+        l1_totals = balance_df.sum(level=[0, 1])
+        l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
+        l1_totals.index.names = ['Category', 'Type', 'Item']
 
-    # Add totals to dataframe
-    balance_df = balance_df.combine_first(l1_totals)
-    balance_df = balance_df.combine_first(l0_totals)
+        l0_totals = balance_df.sum(level=[0])
+        l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
+        l0_totals.index.names = ['Category', 'Type', 'Item']
 
-    return balance_df
+        # Add totals to dataframe
+        balance_df = balance_df.combine_first(l1_totals)
+        balance_df = balance_df.combine_first(l0_totals)
+
+        # Update columns with period
+        balance_df.columns = pd.MultiIndex.from_product([p, balance_df.columns])
+
+        # Add to main list
+        balance_sheets_df.append(balance_df)
+
+    # Concatenate all the periods together
+    balance_sheets_df = pd.concat(balance_sheets_df, 1)
+
+    return balance_sheets_df
 
 def calc_income(paychecks=None, transactions=None, category_dict=None):
     """
@@ -244,6 +261,8 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
     Income will be based on the last entry of account data (e.g. December 31st) for the given `period` time period,
     which defaults to the current year.
 
+    If a sequence of periods is passed, each period's data will be calculated and concatenated as MultiIndex columns.
+
     Example:
     ```
     income = calc_income(paychecks=paychecks, transactions=transactions, category_dict=categories)
@@ -251,50 +270,65 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
     ```
     """
 
-    # Force period to string and set default nettax
-    period = str(period)
-    nettax = nettax if nettax else {'Taxes'}
+    # Force to list, so code below is the same for all cases
+    if not isinstance(period, list):
+        period = [period]
 
-    # Convert to DataFrame
-    income = pd.DataFrame(income[period].sum(), columns=['$'])
-    income.index.names = ['Category', 'Type', 'Item']
+    income_statement_df = []
+    for p in period:
+        # Force period to string and set default nettax
+        p = str(p)
+        nettax = nettax if nettax else {'Taxes'}
 
-    # Calculate percentages of level 0
-    income['%'] = 100.0 * income.div(income.sum(level=0), level=0)
+        # Convert to DataFrame
+        p_income = pd.DataFrame(income[p].sum(), columns=['$'])
+        p_income.index.names = ['Category', 'Type', 'Item']
 
-    # Calculate heirarchical totals
-    l1_totals = income.sum(level=[0, 1])
-    l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
-    l1_totals.index.names = ['Category', 'Type', 'Item']
+        # Calculate percentages of level 0
+        p_income['%'] = 100.0 * p_income.div(p_income.sum(level=0), level=0)
 
-    l0_totals = income.sum(level=[0])
-    l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
-    l0_totals.index.names = ['Category', 'Type', 'Item']
+        # Calculate heirarchical totals
+        l1_totals = p_income.sum(level=[0, 1])
+        l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
+        l1_totals.index.names = ['Category', 'Type', 'Item']
 
-    # Add totals to dataframe
-    income = income.combine_first(l1_totals)
-    income = income.combine_first(l0_totals)
+        l0_totals = p_income.sum(level=[0])
+        l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
+        l0_totals.index.names = ['Category', 'Type', 'Item']
 
-    # Calculate Net
-    before = [(x, 'Total', ' ') for x in set(income.index.levels[0]).difference(nettax)]
-    after = [(x, 'Total', ' ') for x in set(income.index.levels[0])]
+        # Add totals to dataframe
+        p_income = p_income.combine_first(l1_totals)
+        p_income = p_income.combine_first(l0_totals)
 
-    net = pd.DataFrame({
-        '$': [
-            income.loc[before]['$'].sum(),
-            income.loc[after]['$'].sum(),
-            income.loc[after]['$'].sum()
-        ]
-    }, index=pd.MultiIndex.from_tuples([
-        ('Net', 'Net Income', 'Before Taxes'),
-        ('Net', 'Net Income', 'After Taxes'),
-        ('Net', 'Total', ' ')
-    ]))
+        # Calculate Net
+        before = [(x, 'Total', ' ') for x in set(p_income.index.levels[0]).difference(nettax)]
+        after = [(x, 'Total', ' ') for x in set(p_income.index.levels[0])]
 
-    # Add Net
-    income_df = pd.concat([income, net])
+        net = pd.DataFrame({
+            '$': [
+                p_income.loc[before]['$'].sum(),
+                p_income.loc[after]['$'].sum(),
+                p_income.loc[after]['$'].sum()
+            ]
+        }, index=pd.MultiIndex.from_tuples([
+            ('Net', 'Net Income', 'Before Taxes'),
+            ('Net', 'Net Income', 'After Taxes'),
+            ('Net', 'Total', ' ')
+        ]))
 
-    return income_df
+        # Add Net
+        income_df = pd.concat([p_income, net])
+
+        # Update columns with period
+        income_df.columns = pd.MultiIndex.from_product([p, income_df.columns])
+
+        # Add to main list
+        income_statement_df.append(income_df)
+
+    # Concatenate all the periods together
+    income_statement_df = pd.concat(income_statement_df, 1)
+
+    return income_statement_df
 
 def calc_cashflow(transactions=None, category_dict=None):
     """
@@ -397,6 +431,8 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     Cashflow will be based on the last entry of account data (e.g. December 31st) for the given `period` time period, which
      defaults to the current year.  A Net section is automagically calculated.
 
+    If a sequence of periods is passed, each period's data will be calculated and concatenated as MultiIndex columns.
+
     Example:
     ```
     cashflow = calc_cashflow(transactions, category_dict=categories)
@@ -404,38 +440,53 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     ```
     """
 
-    # Force period to string
-    period = str(period)
+    # Force to list, so code below is the same for all cases
+    if not isinstance(period, list):
+        period = [period]
 
-    # Sum over Period and convert to Statement DataFrame
-    cashflow = pd.DataFrame(cashflow[period].sum(), columns=['$'])
-    cashflow.index.names = ['Category', 'Type', 'Item']
+    cashflow_statement_df = []
+    for p in period:
+        # Force period to string
+        p = str(p)
 
-    # Calculate Net
-    net = cashflow[['$']].sum(level=[0, 1]).sum(level=1)
-    net.index = pd.MultiIndex.from_tuples([('Net', x0, 'Total') for x0 in net.index])
-    net.index.names = ['Category', 'Type', 'Item']
+        # Sum over Period and convert to Statement DataFrame
+        p_cashflow = pd.DataFrame(cashflow[p].sum(), columns=['$'])
+        p_cashflow.index.names = ['Category', 'Type', 'Item']
 
-    # Add Net
-    cashflow_df = pd.concat([cashflow, net])
+        # Calculate Net
+        net = p_cashflow[['$']].sum(level=[0, 1]).sum(level=1)
+        net.index = pd.MultiIndex.from_tuples([('Net', x0, 'Total') for x0 in net.index])
+        net.index.names = ['Category', 'Type', 'Item']
 
-    # Calculate percentages of level 0
-    cashflow_df['%'] = 100.0 * cashflow_df.div(cashflow_df.sum(level=0), level=0)
+        # Add Net
+        cashflow_df = pd.concat([p_cashflow, net])
 
-    # Calculate heirarchical totals
-    l1_totals = cashflow_df.sum(level=[0, 1])
-    l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
-    l1_totals.index.names = ['Category', 'Type', 'Item']
+        # Calculate percentages of level 0
+        cashflow_df['%'] = 100.0 * cashflow_df.div(cashflow_df.sum(level=0), level=0)
 
-    l0_totals = cashflow_df.sum(level=[0])
-    l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
-    l0_totals.index.names = ['Category', 'Type', 'Item']
+        # Calculate heirarchical totals
+        l1_totals = cashflow_df.sum(level=[0, 1])
+        l1_totals.index = pd.MultiIndex.from_tuples([(x0, x1, 'Total') for x0, x1 in l1_totals.index])
+        l1_totals.index.names = ['Category', 'Type', 'Item']
 
-    # Add totals to dataframe
-    cashflow_df = cashflow_df.combine_first(l1_totals)
-    cashflow_df = cashflow_df.combine_first(l0_totals)
+        l0_totals = cashflow_df.sum(level=[0])
+        l0_totals.index = pd.MultiIndex.from_tuples([(x0, 'Total', ' ') for x0 in l0_totals.index])
+        l0_totals.index.names = ['Category', 'Type', 'Item']
 
-    return cashflow_df
+        # Add totals to dataframe
+        cashflow_df = cashflow_df.combine_first(l1_totals)
+        cashflow_df = cashflow_df.combine_first(l0_totals)
+
+        # Update columns with period
+        cashflow_df.columns = pd.MultiIndex.from_product([p, cashflow_df.columns])
+
+        # Add to main list
+        cashflow_statement_df.append(cashflow_df)
+
+    # Concatenate all the periods together
+    cashflow_statement_df = pd.concat(cashflow_statement_df, 1)
+
+    return cashflow_statement_df
 
 ################################################################################################################################
 # Net Worth Calculations
