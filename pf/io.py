@@ -61,20 +61,19 @@ def read_in_accounts(filepath=''):
     """
 
     # Read in account data as excel
-    xls = pd.read_excel(
+    xlsx = pd.read_excel(
         filepath,
         sheetname=None,
         index_col=0,
         header=[0, 1]
     )
-    xlsx = {k: v.fillna(0.0) for k, v in xls.items()}
 
     # Separate out worksheet
-    accounts = xlsx['accounts']
-    limits = xlsx['limits']
-    loan = xlsx['loan']
-    incometaxes = xlsx['income taxes']
-    salestax = xlsx['sales tax']
+    accounts = xlsx['accounts'].fillna(0.0)
+    limits = xlsx['limits'].fillna(0.0)
+    loan = xlsx['loan'].fillna(0.0)
+    incometaxes = xlsx['income taxes'].fillna(0.0)
+    salestax = xlsx['sales tax'].fillna(0.0)
 
     # Set Index to DatetimeIndex
     accounts.index = pd.to_datetime(accounts.index, format='%m/%Y').to_period('M').to_timestamp('M')
