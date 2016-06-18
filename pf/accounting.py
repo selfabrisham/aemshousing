@@ -666,10 +666,10 @@ def summary_statement(networth=None, income=None, cashflow=None, limits=None):
     """
     summary = pd.concat([
         networth[['Assets', 'Debts', 'Net']],
-        12.0 * pd.DataFrame(income.Revenue.resample('M', how='sum').sum(axis=1), columns=['Total Income']),
-        12.0 * pd.DataFrame(cashflow.Inflow.resample('M', how='sum').sum(axis=1), columns=['Realized Income']),
-        12.0 * pd.DataFrame(cashflow.Outflow.resample('M', how='sum').sum(axis=1), columns=['Expense']),
-        12.0 * pd.DataFrame(income.Taxes.resample('M', how='sum').sum(axis=1), columns=['Taxes']),
+        12.0 * pd.DataFrame(income.Revenue.resample('M').sum().sum(axis=1), columns=['Total Income']),
+        12.0 * pd.DataFrame(cashflow.Inflow.resample('M').sum().sum(axis=1), columns=['Realized Income']),
+        12.0 * pd.DataFrame(cashflow.Outflow.resample('M').sum().sum(axis=1), columns=['Expense']),
+        12.0 * pd.DataFrame(income.Taxes.resample('M').sum().sum(axis=1), columns=['Taxes']),
         pd.DataFrame(limits.sum(axis=1), columns=['Credit Line']),
     ], axis=1).dropna()
 
@@ -680,9 +680,8 @@ def calc_metrics(summary=None, swr=0.04):
     Calculate various metrics for personal finance (profit margin (SR), debt ratio, debt to income, time to FI).
     """
     # Create mean from month to month yearly estimates
-    summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']] = pd.expanding_mean(
-        summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']]
-    )
+    summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']] = summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']].expanding().mean()
+
     # Calculate metrics
     metrics = pd.DataFrame({
         'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],

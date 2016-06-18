@@ -95,7 +95,7 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
             pd.concat([data[columns].idxmin(), data[columns].min()], axis=1),
             # Show last data points
             data[columns].iloc[[-1]].unstack().reset_index().set_index('level_0').rename(columns={0:1, 'Date':0})
-        ]).reset_index().drop_duplicates().sort(0, inplace=False)
+        ]).reset_index().drop_duplicates().sort_values(0, inplace=False)
 
         # Set Text
         ann_bb = []
