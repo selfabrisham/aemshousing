@@ -171,10 +171,22 @@ Generally, and for *code-to-be*, `pfcompute` is intended to be used within the [
 
 Specifically, it currently uses:
 
-- [`matplotlib`]()
-    - [`patches`]()
-- [`numpy`]()
-- [`pandas`]()
+- matplotlib (pf.plot)
+    - patches (pf.plot)
+- numpy (pf.io)
+- pandas (pf.io)
+- pdfminer
+    - converter (pf.io)
+    - layout (pf.io)
+    - pdfdocument (pf.io)
+    - pdfinterp (pf.io)
+    - pdfpage (pf.io)
+    - pdfparser (pf.io)
+- scipy
+    - stats (pf.util)
+- statsmodels
+    - tsa
+        - arima_model (pf.forecasting)
 
 ## License
 [MIT](https://github.com/tmthydvnprt/pfcompute/blob/master/LICENSE)
