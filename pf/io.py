@@ -17,6 +17,7 @@ copyright  : Copyright 2016, tmthydvnprt
 credits    :
 
 """
+from __future__ import division
 
 import re
 import os
@@ -35,7 +36,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
 
 from pf.constants import DATE_RE
-from pf.util import parse_month_year_end, parse_month_day_dates, read_date_csv_file
+from pf.util import read_date_csv_file
 
 ################################################################################################################################
 # Account Functions
@@ -60,26 +61,27 @@ def read_in_accounts(filepath=''):
     """
 
     # Read in account data as excel
-    xlxs = {k: v.fillna(0.0) for k, v in pd.read_excel(
+    xls = pd.read_excel(
         filepath,
         sheetname=None,
         index_col=0,
         header=[0, 1]
-    ).items()}
+    )
+    xlsx = {k: v.fillna(0.0) for k, v in xls.items()}
 
     # Separate out worksheet
-    accounts = xlxs['accounts']
-    limits = xlxs['limits']
-    loan = xlxs['loan']
-    incometaxes = xlxs['income taxes']
-    salestax = xlxs['sales tax']
+    accounts = xlsx['accounts']
+    limits = xlsx['limits']
+    loan = xlsx['loan']
+    incometaxes = xlsx['income taxes']
+    salestax = xlsx['sales tax']
 
     # Set Index to DatetimeIndex
-    accounts.index = accounts.index.map(parse_month_year_end)
-    limits.index = limits.index.map(parse_month_year_end)
-    loan.index = loan.index.map(parse_month_year_end)
-    incometaxes.index = incometaxes.index.map(parse_month_year_end)
-    salestax.index = salestax.index.map(parse_month_year_end)
+    accounts.index = pd.to_datetime(accounts.index, format='%m/%Y').to_period('M').to_timestamp('M')
+    limits.index = pd.to_datetime(limits.index, format='%m/%Y').to_period('M').to_timestamp('M')
+    loan.index = pd.to_datetime(loan.index, format='%m/%Y').to_period('M').to_timestamp('M')
+    incometaxes.index = pd.to_datetime(incometaxes.index, format='%m/%Y').to_period('M').to_timestamp('M')
+    salestax.index = pd.to_datetime(salestax.index, format='%m/%Y').to_period('M').to_timestamp('M')
 
     # Set Index name for later
     accounts.index.name = 'Date'
@@ -136,7 +138,7 @@ def read_in_transactions(filepath='', cache=True):
     # Read in cached file if it exists
     if cache and cached:
         transactions = read_date_csv_file(transactions_cache_file)
-        transactions['labels'] = transactions['labels'].apply(lambda x: set(ast.literal_eval(x)))
+        transactions['labels'] = transactions['labels'].map(lambda x: set(ast.literal_eval(x)))
         last_hash = transactions.ix[0, 'checksum']
         transactions = transactions.drop('checksum', 1)
     else:
@@ -152,7 +154,7 @@ def read_in_transactions(filepath='', cache=True):
         # Read Transaction info
         transactions = pd.read_json(filepath, orient='records').set_index('date')
         # Correct Dates for index
-        transactions.index = pd.DatetimeIndex([parse_month_day_dates(d) for d in transactions.index], name='Date')
+        transactions.index = transactions.index.astype(str).to_datetime()
 
         # Process labels
         transactions['labels'] = [{label['name'] for label in transaction} for transaction in transactions['labels']]
@@ -434,6 +436,6 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=T
         paycheck_df = paycheck_df.round(2)
 
         if cache:
-            paycheck_df.to_csv(filepath)
+            paycheck_df.to_csv(paycheck_cache_file)
 
     return paycheck_df

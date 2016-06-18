@@ -26,6 +26,7 @@ import pandas as pd
 import scipy.stats as st
 from statsmodels.tsa.arima_model import ARIMA
 
+import pf.util
 from pf.constants import ARIMA_ORDERS
 
 ################################################################################################################################
@@ -223,7 +224,7 @@ def monte_carlo_forecast(accounts, account_models, start, number_of_runs=1000, *
                 # Create Series of percent changes from random variables
                 forecast_pct_change = pd.Series(forecast_rvs, index=forecast_dates)
                 # Clip unrealistic changes larger than +/-50% in once month
-                forecast_pct_change = forecast_pct_change.clip(-0.5,0.5)
+                forecast_pct_change = forecast_pct_change.clip(-0.5, 0.5)
                 # Forecast account as monthly percent change from last known account value
                 forecast_pct = np.exp(forecast_pct_change.copy())
                 forecast_pct[0] = forecast_pct[0] * init_value
