@@ -34,8 +34,7 @@ from pf.util import f2as
 def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints=True, close=True, current_bar=True):
     """Make nice plot for time series"""
 
-    # Historical Net Worth Plot
-    matplotlib.pyplot.figure()
+    # User columns or use all
     columns = columns if columns else data.columns.tolist()
 
     # Smooth Data
