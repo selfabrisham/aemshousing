@@ -105,7 +105,7 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
     if not isinstance(period, list):
         period = [period]
 
-    balance_sheets_df = []
+    balance_sheets = []
     for p in period:
         # Force period to string
         p = str(p)
@@ -143,10 +143,10 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
         balance_df.columns = pd.MultiIndex.from_product([p, balance_df.columns])
 
         # Add to main list
-        balance_sheets_df.append(balance_df)
+        balance_sheets.append(balance_df)
 
     # Concatenate all the periods together
-    balance_sheets_df = pd.concat(balance_sheets_df, 1)
+    balance_sheets_df = pd.concat(balance_sheets, 1)
 
     return balance_sheets_df
 
@@ -274,7 +274,7 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
     if not isinstance(period, list):
         period = [period]
 
-    income_statement_df = []
+    income_statements = []
     for p in period:
         # Force period to string and set default nettax
         p = str(p)
@@ -323,10 +323,10 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
         income_df.columns = pd.MultiIndex.from_product([p, income_df.columns])
 
         # Add to main list
-        income_statement_df.append(income_df)
+        income_statements.append(income_df)
 
     # Concatenate all the periods together
-    income_statement_df = pd.concat(income_statement_df, 1)
+    income_statement_df = pd.concat(income_statements, 1)
 
     return income_statement_df
 
@@ -444,7 +444,7 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
     if not isinstance(period, list):
         period = [period]
 
-    cashflow_statement_df = []
+    cashflow_statements = []
     for p in period:
         # Force period to string
         p = str(p)
@@ -481,10 +481,10 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
         cashflow_df.columns = pd.MultiIndex.from_product([p, cashflow_df.columns])
 
         # Add to main list
-        cashflow_statement_df.append(cashflow_df)
+        cashflow_statements.append(cashflow_df)
 
     # Concatenate all the periods together
-    cashflow_statement_df = pd.concat(cashflow_statement_df, 1)
+    cashflow_statement_df = pd.concat(cashflow_statements, 1)
 
     return cashflow_statement_df
 
@@ -680,7 +680,8 @@ def calc_metrics(summary=None, swr=0.04):
     Calculate various metrics for personal finance (profit margin (SR), debt ratio, debt to income, time to FI).
     """
     # Create mean from month to month yearly estimates
-    summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']] = summary[['Total Income', 'Realized Income', 'Expense', 'Taxes']].expanding().mean()
+    cols = ['Total Income', 'Realized Income', 'Expense', 'Taxes']
+    summary[cols] = summary[cols].expanding().mean()
 
     # Calculate metrics
     metrics = pd.DataFrame({
