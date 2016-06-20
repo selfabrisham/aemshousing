@@ -1,22 +1,20 @@
 
 pf Linting Report
-2016-06-12 05:17:50 -0700
+2016-06-20 08:43:35 -0700
 =========================================
 
-************* Module pf.io
-I:174, 0: Locally disabling bare-except (W0702) (locally-disabled)
-I:192, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
-I:192, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
 ************* Module pf.accounting
-I:361, 0: Locally disabling cell-var-from-loop (W0640) (locally-disabled)
-I:546, 0: Locally disabling no-member (E1101) (locally-disabled)
-************* Module pf.util
-W:175,15: Catching too general exception Exception (broad-except)
+I:397, 0: Locally disabling cell-var-from-loop (W0640) (locally-disabled)
+I:599, 0: Locally disabling no-member (E1101) (locally-disabled)
+************* Module pf.io
+I:205, 0: Locally disabling bare-except (W0702) (locally-disabled)
+I:223, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
+I:223, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
 
 
 Report
 ======
-558 statements analysed.
+648 statements analysed.
 
 Statistics by type
 ------------------
@@ -30,7 +28,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |5      |5          |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |30     |30         |=          |100.00      |0.00     |
+|function |32     |32         |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -41,8 +39,8 @@ External dependencies
 
     matplotlib (pf.plot)
       \-patches (pf.plot)
-    numpy (pf.util)
-    pandas (pf.util)
+    numpy (pf.io)
+    pandas (pf.io)
     pdfminer 
       \-converter (pf.io)
       \-layout (pf.io)
@@ -51,7 +49,8 @@ External dependencies
       \-pdfpage (pf.io)
       \-pdfparser (pf.io)
     pf 
-      \-constants (pf.util)
+      \-constants (pf.io)
+      \-util (pf.io)
     scipy 
       \-stats (pf.util)
     statsmodels 
@@ -66,13 +65,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |720    |44.33 |720      |=          |
+|code      |818    |44.95 |818      |=          |
 +----------+-------+------+---------+-----------+
-|docstring |453    |27.89 |453      |=          |
+|docstring |481    |26.43 |481      |=          |
 +----------+-------+------+---------+-----------+
-|comment   |233    |14.35 |233      |=          |
+|comment   |265    |14.56 |265      |=          |
 +----------+-------+------+---------+-----------+
-|empty     |218    |13.42 |218      |=          |
+|empty     |256    |14.07 |256      |=          |
 +----------+-------+------+---------+-----------+
 
 
@@ -100,21 +99,10 @@ Messages by category
 +-----------+-------+---------+-----------+
 |refactor   |0      |0        |=          |
 +-----------+-------+---------+-----------+
-|warning    |1      |1        |=          |
+|warning    |0      |1        |-1.00      |
 +-----------+-------+---------+-----------+
-|error      |0      |1        |-1.00      |
+|error      |0      |0        |=          |
 +-----------+-------+---------+-----------+
-
-
-
-% errors / warnings by module
------------------------------
-
-+--------+------+--------+---------+-----------+
-|module  |error |warning |refactor |convention |
-+========+======+========+=========+===========+
-|pf.util |0.00  |100.00  |0.00     |0.00       |
-+--------+------+--------+---------+-----------+
 
 
 
@@ -126,12 +114,10 @@ Messages
 +=================+============+
 |locally-disabled |5           |
 +-----------------+------------+
-|broad-except     |1           |
-+-----------------+------------+
 
 
 
 Global evaluation
 -----------------
-Your code has been rated at 9.98/10 (previous run: 9.89/10, +0.09)
+Your code has been rated at 10.00/10 (previous run: 9.98/10, +0.02)
 

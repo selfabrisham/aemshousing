@@ -679,9 +679,7 @@ def summary_statement(networth=None, income=None, cashflow=None, limits=None):
 
 def calc_metrics(summary=None, swr=0.04):
     """
-    Calculate various metrics for personal finance (profit margin (a.k.a SR, Savings Rate), debt ratio, debt to income, time to FI).
-
-    The default SWR (Safe Withdrawl Rate) is 0.04.
+    Calculate various metrics for personal finance.
 
     Debt Ratio = -Debts / Assets
     Debt to Income = -Debts / Realized Income
@@ -695,6 +693,8 @@ def calc_metrics(summary=None, swr=0.04):
     Total Tax Rate = Taxes / Total Income
     Realized Income Tax Rate = Taxes / Realized Income
     Tax to Net = Taxes / Net
+
+    The default SWR (Safe Withdrawl Rate) is 0.04.
 
     """
     # Create mean from month to month yearly estimates

@@ -174,9 +174,9 @@ def read_in_transactions(filepath='', cache=True):
 
         if cache:
             transactions.ix[0, 'checksum'] = transaction_hash
-            transactions['labels'] = transactions['labels'].apply(lambda x: list(x))
+            transactions['labels'] = transactions['labels'].apply(list)
             transactions.to_csv(transactions_cache_file)
-            transactions['labels'] = transactions['labels'].apply(lambda x: set(x))
+            transactions['labels'] = transactions['labels'].apply(set)
             transactions = transactions.drop('checksum', 1)
 
     return transactions

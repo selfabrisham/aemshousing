@@ -50,6 +50,7 @@ def read_date_csv_file(filepath=''):
     return df
 
 def checksum(fname):
+    """Calculate the MD5 hash of a file in chunks"""
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
