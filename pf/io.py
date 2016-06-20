@@ -68,7 +68,7 @@ def read_in_accounts(filepath=''):
         header=[0, 1]
     )
 
-    # Separate out worksheet
+    # Separate out worksheet and fill NaNs
     accounts = xlsx['accounts'].fillna(0.0)
     limits = xlsx['limits'].fillna(0.0)
     loan = xlsx['loan'].fillna(0.0)
@@ -166,6 +166,9 @@ def read_in_transactions(filepath='', cache=True):
 
         # Set debit transactions as negative
         transactions.loc[transactions.isDebit, 'amount'] = -1.0 * transactions.loc[transactions.isDebit, 'amount']
+
+        # Fill NaNs
+        transactions = transactions.fillna(0.0)
 
         # Clean up transaction data by user
         transactions = clean_transactions(transactions)
@@ -431,8 +434,8 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=T
         # Parse paycheck data with user defined function
         paycheck_df = parser(paycheck_dict)
 
-        # Enforce penny
-        paycheck_df = paycheck_df.round(2)
+        # Enforce pennies
+        paycheck_df = paycheck_df.fillna(0.0).round(2)
 
         if cache:
             paycheck_df.to_csv(paycheck_cache_file)
