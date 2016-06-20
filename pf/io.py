@@ -23,7 +23,6 @@ import re
 import os
 import ast
 import glob
-import hashlib
 import cStringIO
 import numpy as np
 import pandas as pd
@@ -36,7 +35,7 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
 
 from pf.constants import DATE_RE
-from pf.util import read_date_csv_file
+from pf.util import read_date_csv_file, checksum
 
 ################################################################################################################################
 # Account Functions
@@ -145,7 +144,7 @@ def read_in_transactions(filepath='', cache=True):
         transactions = None
 
     # Read Input Transaction info hash
-    transaction_hash = hashlib.md5(filepath).hexdigest()
+    transaction_hash = checksum(filepath)
 
     # Read paycheck data if need be (not cached or update transactions)
     if not cache or not cached or transaction_hash != last_hash:

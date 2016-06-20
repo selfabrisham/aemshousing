@@ -218,6 +218,8 @@ def calc_income(paychecks=None, transactions=None, category_dict=None):
                     category_dict[k0][k1][k2]['labels'] = set()
                 if not v2.has_key('logic'):
                     category_dict[k0][k1][k2]['logic'] = ''
+                if not v2.has_key('agg'):
+                    category_dict[k0][k1][k2]['agg'] = np.ones(len(category_dict[k0][k1][k2]['categories']))
 
     # Aggregate accounts based on category definition, via 3 level dictionary comprehension
     income_dict = {}
@@ -239,7 +241,7 @@ def calc_income(paychecks=None, transactions=None, category_dict=None):
                         )
                     ]['amount']
                 else:
-                    income_dict[(k0, k1, k2)] = paychecks[list(v2['categories'])].sum(axis=1)
+                    income_dict[(k0, k1, k2)] = (v2['agg'] * paychecks[list(v2['categories'])]).sum(axis=1)
 
     # Convert to DataFrame
     cats = income_dict.keys()
@@ -666,10 +668,10 @@ def summary_statement(networth=None, income=None, cashflow=None, limits=None):
     """
     summary = pd.concat([
         networth[['Assets', 'Debts', 'Net']],
-        12.0 * pd.DataFrame(income.Revenue.resample('M').sum().sum(axis=1), columns=['Total Income']),
-        12.0 * pd.DataFrame(cashflow.Inflow.resample('M').sum().sum(axis=1), columns=['Realized Income']),
-        12.0 * pd.DataFrame(cashflow.Outflow.resample('M').sum().sum(axis=1), columns=['Expense']),
-        12.0 * pd.DataFrame(income.Taxes.resample('M').sum().sum(axis=1), columns=['Taxes']),
+        12.0 * pd.DataFrame(income['Revenue'].resample('M').sum().sum(axis=1), columns=['Total Income']),
+        12.0 * pd.DataFrame(cashflow['Inflow'].resample('M').sum().sum(axis=1), columns=['Realized Income']),
+        12.0 * pd.DataFrame(cashflow['Outflow'].resample('M').sum().sum(axis=1), columns=['Expense']),
+        12.0 * pd.DataFrame(income['Taxes'].resample('M').sum().sum(axis=1), columns=['Taxes']),
         pd.DataFrame(limits.sum(axis=1), columns=['Credit Line']),
     ], axis=1).dropna()
 

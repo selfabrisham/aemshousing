@@ -20,6 +20,7 @@ credits    :
 from __future__ import division
 
 import sys
+import hashlib
 import datetime
 import warnings
 import numpy as np
@@ -47,6 +48,13 @@ def read_date_csv_file(filepath=''):
     """Convinience function for reading standard date index csv"""
     df = pd.read_csv(filepath, index_col=0, parse_dates=True)
     return df
+
+def checksum(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
 ################################################################################################################################
 # Progress Bar for interactive sanety during long calcualtions
