@@ -27,5 +27,8 @@ import re
 DAYS_IN_YEAR = 365.24
 DATE_RE = re.compile(r'\d{4}-\d{2}-\d{2}')
 
+# Regex Constants
+SPLIT_NEWLINES_RE = re.compile(r'\n\s*\n*')
+
 # Forcasting Constants
 ARIMA_ORDERS = [(3, 2, 1), (2, 2, 1), (2, 1, 1), (1, 1, 1), (1, 1, 0), (1, 0, 0)]

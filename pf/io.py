@@ -34,7 +34,7 @@ from pdfminer.converter import TextConverter
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
 
-from pf.constants import DATE_RE
+from pf.constants import DATE_RE, SPLIT_NEWLINES_RE
 from pf.util import read_date_csv_file, checksum
 
 ################################################################################################################################
@@ -193,7 +193,7 @@ def text2listoflists(text=''):
     # Splits text on lines and then splits line on multiple spaces, ignoring empty lines
     listoflists = [
         [cell.strip() for cell in line.split('  ') if cell.strip() != '']
-        for line in text.split('\n')
+        for line in SPLIT_NEWLINES_RE.split(text)
     ]
     # Remove empty lists or 'cells'
     listoflists = [
