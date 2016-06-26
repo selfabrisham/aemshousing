@@ -34,7 +34,7 @@ from pdfminer.converter import TextConverter
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
 
-from pf.constants import DATE_RE, SPLIT_NEWLINES_RE
+from pf.constants import DATE_RE
 from pf.util import read_date_csv_file, checksum
 
 ################################################################################################################################
@@ -184,34 +184,6 @@ def read_in_transactions(filepath='', cache=True):
 ################################################################################################################################
 # Paycheck Functions
 ################################################################################################################################
-def text2listoflists(text=''):
-    """
-    Convert text to list of lists.
-    May need to be overriden by user, but it is suggested the use this format and override `paycheck_parser()`.
-    """
-
-    # Splits text on lines and then splits line on multiple spaces, ignoring empty lines
-    listoflists = [
-        [cell.strip() for cell in line.split('  ') if cell.strip() != '']
-        for line in SPLIT_NEWLINES_RE.split(text)
-    ]
-    # Remove empty lists or 'cells'
-    listoflists = [
-        p for p in listoflists
-        if p and p != ['']
-    ]
-
-    # Parse floats if 'cell' only contains number
-    #pylint: disable=bare-except
-    for rownum, row in enumerate(listoflists):
-        for colnum, col in enumerate(row):
-            try:
-                listoflists[rownum][colnum] = float(col.replace(',', ''))
-            except:
-                pass
-
-    return listoflists
-
 def paycheck_parser(paychecks_dict=None):
     """
     User defined function to convert dictonary of paycheck list of lists into a DataFrame. You could always replace of the whole
@@ -220,130 +192,160 @@ def paycheck_parser(paychecks_dict=None):
     Necessary user defined parts are sectioned off with `#####`.
 
     """
-    #pylint: disable=too-many-branches,too-many-statements
+    #pylint: disable=too-many-branches,too-many-statements,too-many-locals
     # User Defined Constants like precompiled regex
     ############################################################################################################################
+    check_date_re = re.compile(r'.*Check Date: +(.*?) +.*')
     baserate_re = re.compile(r'(.*) Base Rate:')
+    top_re = re.compile(r'Total Gross')
+    earnings_re = re.compile(r'Earnings')
+    end_re = re.compile(r'Total:')
+    deductions_re = re.compile(r'Description')
     ############################################################################################################################
 
     # Loop thru dictionary (these lines are generic)
     paychecks = []
-    for _, paycheck_lists in paychecks_dict.items():
+    for _, paycheck_text in paychecks_dict.items():
 
         # Parse data into dictionary of 'fields'
-        paycheck_fields = {}
+        df = {}
 
         # User Defined parsing 'flags' (usefull to have different parsing logic for different sections)
         # and internal or intermediate variables (usefull for saving data across rows without putting in final dictionary)
         ########################################################################################################################
+        t = -1
+        t0 = -1
+        t1 = -1
+        t2 = -1
+        in_base = False
+        in_top = False
         in_earnings = False
         in_deductions = False
         baserate = ''
+        earnings_table = []
+        taxes_table = []
+        pre_table = []
+        post_table = []
+        other_table = []
         ########################################################################################################################
 
+        lines = [line for line in paycheck_text.split('\n') if line.strip()]
+
         # Process each row of paycheck
-        for row in paycheck_lists:
+        for line in lines:
+
+            line = str(line)
 
             # User Defined Parser Logic, this will be totally dependent on the format of your paycheck pdf... good luck!
             ####################################################################################################################
-            # If inside earnings and tax tables
-            if in_earnings:
-                # Find string cells, these represent the field keys (names), the floats represent the field values
-                stringindex = np.array([i for i, cell in enumerate(row) if isinstance(cell, str)])
+            if in_base:
+                number = float(line.strip().replace(',', ''))
+                df['Base Rate'] = number * 80.0 if baserate == 'Hourly' else number
+                in_base = False
 
-                if len(row) > 1 and row[0] == 'Total:':
-                    if len(stringindex) == 2:
-                        stringdiff = stringindex[1] - stringindex[0]
-                        if stringdiff == 4:
-                            paycheck_fields[row[stringindex[0]].replace(':', '') + ' Earnings'] = row[2]
-                            paycheck_fields[row[stringindex[1]].replace(':', '') + ' Tax'] = -row[stringindex[1] + 1]
-                        if stringdiff == 3:
-                            paycheck_fields[row[stringindex[0]].replace(':', '') + ' Earnings'] = row[1]
-                            paycheck_fields[row[stringindex[1]].replace(':', '') + ' Tax'] = -row[stringindex[1] + 1]
+            elif in_top:
+                row = line.split()
+                row = [row[0]] + [float(r.replace(',', '')) for r in row[1:]]
+                try:
+                    df['Total Gross'] = row[1]
+                    df['Fed Taxable Gross'] = row[2]
+                    df['OASDI Gross'] = row[3]
+                    df['MEDI Gross'] = row[4]
+                    df['Net Pay'] = row[5]
+                except:
+                    pass
+                in_top = False
 
-                    # If total row appears, exit earnings and tax table
+            elif in_earnings:
+                end_earnings = end_re.search(line)
+                # Parse tables
+                earnings = line[:t]
+                taxes = line[t:]
+                row0 = [earnings[:e+1].split('  ')[-1].strip().replace(',', '') for e in earnings_table]
+                row1 = [taxes[:e+1].split('  ')[-1].strip().replace(',', '') for e in taxes_table]
+                key0 = earnings.split('  ')[0]
+                key1 = taxes.split('  ')[0]
+
+                if end_earnings:
                     in_earnings = False
-                else:
-                    # If there are two columns, get the data
-                    if len(stringindex) == 2:
-                        stringdiff = stringindex[1] - stringindex[0]
-                        if stringdiff == 4:
-                            paycheck_fields[row[0]] = row[2]
-                            paycheck_fields[row[4]] = -row[5]
-                        elif stringdiff == 3:
-                            paycheck_fields[row[0]] = row[1]
-                            paycheck_fields[row[3]] = -row[4]
-                        elif stringdiff == 2:
-                            paycheck_fields[row[2]] = -row[3]
-                    # If single column get tax
-                    else:
-                        paycheck_fields[row[0]] = -row[1]
+                    key0 = key0.replace(':', '') + ' Pay'
+                    key1 = key1.replace(':', '') + ' Tax'
 
-            # If inside deduction tables
+                if key0:
+                    df[key0] = float(row0[2]) if row0[2] else 0.0
+                if key1:
+                    df[key1] = float(row1[1]) if row1[1] else 0.0
+
             elif in_deductions:
-                # Find string cells
-                stringindex = np.array([i for i, cell in enumerate(row) if isinstance(cell, str)])
-                # If there are two columns, get the data
-                if len(stringindex) == 3:
-                    stringdiff1 = stringindex[1] - stringindex[0]
-                    stringdiff2 = stringindex[2] - stringindex[1]
-                    if row[0] == 'Total:':
-                        if stringdiff1 > 2:
-                            paycheck_fields['Total Before Tax'] = -row[stringindex[0] + 1]
-                        if stringdiff2 > 2:
-                            paycheck_fields['Total After Tax'] = -row[stringindex[1] + 1]
-                        if (len(row) - stringindex[2]) > 2:
-                            paycheck_fields['Total Other Tax'] = -row[stringindex[2] + 1]
-                        # If total row appears, exit earnings and tax table
-                        in_deductions = False
-                    else:
-                        if stringdiff1 > 2:
-                            paycheck_fields[row[stringindex[0]]] = -row[stringindex[0] + 1]
-                        if stringdiff2 > 2:
-                            paycheck_fields[row[stringindex[1]]] = -row[stringindex[1] + 1]
-                        if (len(row) - stringindex[2]) > 2:
-                            paycheck_fields[row[stringindex[2]]] = -row[stringindex[2] + 1]
+                end_deductions = end_re.search(line)
+                # Parse tables
+                pre = line[:t1]
+                post = line[t1:t2]
+                other = line[t2:]
+                row0 = [pre[:e+1].split('  ')[-1].strip().replace(',', '') for e in pre_table]
+                row1 = [post[:e+1].split('  ')[-1].strip().replace(',', '') for e in post_table]
+                row2 = [other[:e+1].split('  ')[-1].strip().replace(',', '') for e in other_table]
+                key0 = pre.split('  ')[0]
+                key1 = post.split('  ')[0]
+                key2 = other.split('  ')[0]
+                if end_deductions:
+                    in_deductions = False
+                    key0 = key0.replace(':', '') + ' Before Tax'
+                    key1 = key1.replace(':', '') + ' After Tax'
+                    key2 = key2.replace(':', '') + ' Other Tax'
 
-                elif len(stringindex) == 2:
-                    stringdiff = stringindex[1] - stringindex[0]
-                    if stringdiff == 3:
-                        paycheck_fields[row[0]] = -row[1]
-                        if len(row) == 5:
-                            paycheck_fields[row[3]] = -row[4]
-                    elif stringdiff == 2:
-                        paycheck_fields[row[2]] = -row[3]
-                # If single column get current (3 cells)
-                else:
-                    paycheck_fields[row[0]] = -row[1]
+                if key0:
+                    df[key0] = float(row0[1]) if row0[1] else 0.0
+                if key1:
+                    df[key1] = float(row1[1]) if row1[1] else 0.0
+                if key2:
+                    df[key2] = float(row2[1]) if row2[1] else 0.0
 
             # Regular parsing
             else:
-                baserate_search = baserate_re.search(str(row[0]))
-                # Read Base Rate
+
+                # Search for Strings
+                date_search = check_date_re.search(line)
+                baserate_search = baserate_re.search(line)
+                top_search = top_re.search(line)
+                earnings_search = earnings_re.search(line)
+                deductions_search = deductions_re.search(line)
+
+                # Set flags and parse out table positions
+                if date_search:
+                    df['Date'] = pd.to_datetime(date_search.groups()[0])
                 if baserate_search:
                     baserate = baserate_search.groups()[0]
-                elif len(row) > 0 and isinstance(row[0], float):
-                    paycheck_fields['Base Rate'] = row[0] * 80.0 if baserate == 'Hourly' else row[0]
-                # Read Check Date
-                elif len(row) > 1 and row[1] == 'Check Date:':
-                    paycheck_fields['Date'] = pd.to_datetime(row[2])
-                # Read Tax Categories
-                elif len(row) > 4 and row[0] == 'Current':
-                    paycheck_fields['Total Gross'] = row[1]
-                    paycheck_fields['Fed Taxable Gross'] = row[2]
-                    paycheck_fields['OASDI Gross'] = row[3]
-                    paycheck_fields['MEDI Gross'] = row[4]
-                    paycheck_fields['Net Pay'] = row[5]
-                # Enter Earnings and Tax Tables
-                elif len(row) > 0 and row[0] == 'Earnings':
+                    in_base = True
+                if top_search:
+                    in_top = True
+                if earnings_search:
+                    t = line.find('Taxes')
+                    earnings = line[:t]
+                    taxes = line[t:]
+                    earnigs_enum_zip = enumerate(zip(earnings[:-2], earnings[1:-1], earnings[2:]))
+                    taxes_enum_zip = enumerate(zip(taxes[:-2], taxes[1:-1], taxes[2:]))
+                    earnings_table = [i for i, (c0, c1, c2) in earnigs_enum_zip if c0 != ' ' and c1 + c2 == '  ']
+                    taxes_table = [i for i, (c0, c1, c2) in taxes_enum_zip if c0 != ' ' and c1 + c2 == '  ']
                     in_earnings = True
-                # Enter Earnings and Tax Tables
-                elif len(row) > 0 and row[0] == 'Description':
+                if deductions_search:
+                    t0 = line.find('Description')
+                    t1 = line.find('Description', t0 + 1)
+                    t2 = line.find('Description', t1 + 1)
+                    pre = line[:t1]
+                    post = line[t1:t2]
+                    other = line[t2:]
+                    pre_enum_zip = enumerate(zip(pre[:-2], pre[1:-1], pre[2:]))
+                    post_enum_zip = enumerate(zip(post[:-2], post[1:-1], post[2:]))
+                    other_enum_zip = enumerate(zip(other[:-2], other[1:-1], other[2:]))
+                    pre_table = [i for i, (c0, c1, c2) in pre_enum_zip if c0 != ' ' and c1 + c2 == '  ']
+                    post_table = [i for i, (c0, c1, c2) in post_enum_zip if c0 != ' ' and c1 + c2 == '  ']
+                    other_table = [i for i, (c0, c1, c2) in other_enum_zip if c0 != ' ' and c1 + c2 == '  ']
+
                     in_deductions = True
-            ####################################################################################################################
 
         # Store paycheck fields in list
-        paychecks.append(paycheck_fields)
+        paychecks.append(df)
 
     # Convert list of paycheck field dictionary to DataFrame
     paycheck_df = pd.DataFrame(paychecks).set_index('Date')
@@ -424,11 +426,8 @@ def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=T
             converter.close()
             output.close()
 
-            # Convert to list of lists
-            paycheck_lists = text2listoflists(text)
-
             # Add to dictionary
-            paycheck_dict[date] = paycheck_lists
+            paycheck_dict[date] = text
 
         # Parse paycheck data with user defined function
         paycheck_df = parser(paycheck_dict)

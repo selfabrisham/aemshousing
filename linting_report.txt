@@ -1,20 +1,20 @@
 
 pf Linting Report
-2016-06-20 08:43:35 -0700
+2016-06-26 07:31:24 -0700
 =========================================
 
 ************* Module pf.accounting
 I:397, 0: Locally disabling cell-var-from-loop (W0640) (locally-disabled)
 I:599, 0: Locally disabling no-member (E1101) (locally-disabled)
 ************* Module pf.io
-I:205, 0: Locally disabling bare-except (W0702) (locally-disabled)
-I:223, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
-I:223, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
+I:195, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
+I:195, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
+I:195, 0: Locally disabling too-many-locals (R0914) (locally-disabled)
 
 
 Report
 ======
-648 statements analysed.
+676 statements analysed.
 
 Statistics by type
 ------------------
@@ -28,7 +28,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |5      |5          |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |32     |32         |=          |100.00      |0.00     |
+|function |31     |31         |=          |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -65,13 +65,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |818    |44.95 |818      |=          |
+|code      |836    |45.88 |839      |-3.00      |
 +----------+-------+------+---------+-----------+
-|docstring |481    |26.43 |481      |=          |
+|docstring |477    |26.18 |517      |-40.00     |
 +----------+-------+------+---------+-----------+
-|comment   |265    |14.56 |265      |=          |
+|comment   |249    |13.67 |250      |-1.00      |
 +----------+-------+------+---------+-----------+
-|empty     |256    |14.07 |256      |=          |
+|empty     |260    |14.27 |261      |-1.00      |
 +----------+-------+------+---------+-----------+
 
 
@@ -99,7 +99,7 @@ Messages by category
 +-----------+-------+---------+-----------+
 |refactor   |0      |0        |=          |
 +-----------+-------+---------+-----------+
-|warning    |0      |1        |-1.00      |
+|warning    |0      |0        |=          |
 +-----------+-------+---------+-----------+
 |error      |0      |0        |=          |
 +-----------+-------+---------+-----------+
@@ -119,5 +119,5 @@ Messages
 
 Global evaluation
 -----------------
-Your code has been rated at 10.00/10 (previous run: 9.98/10, +0.02)
+Your code has been rated at 10.00/10 (previous run: 10.00/10, +0.00)
 
