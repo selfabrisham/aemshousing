@@ -670,7 +670,11 @@ def summary_statement(networth=None, income=None, cashflow=None, limits=None):
         networth[['Assets', 'Debts', 'Net']],
         12.0 * pd.DataFrame(income['Revenue'].resample('M').sum().sum(axis=1), columns=['Total Income']),
         12.0 * pd.DataFrame(cashflow['Inflow'].resample('M').sum().sum(axis=1), columns=['Realized Income']),
-        12.0 * pd.DataFrame(cashflow['Outflow'].resample('M').sum().sum(axis=1), columns=['Expense']),
+        12.0 * pd.DataFrame(cashflow['Outflow'].resample('M').sum().sum(axis=1), columns=['Expense + Loans']),
+        12.0 * pd.DataFrame(
+            cashflow['Outflow'].resample('M').sum().sum(axis=1) \
+            - cashflow[('Outflow', 'Operating', 'Loan Payments')].resample('M').sum()
+            , columns=['Expense']),
         12.0 * pd.DataFrame(income['Taxes'].resample('M').sum().sum(axis=1), columns=['Taxes']),
         pd.DataFrame(limits.sum(axis=1), columns=['Credit Line']),
     ], axis=1).dropna()
@@ -698,7 +702,7 @@ def calc_metrics(summary=None, swr=0.04):
 
     """
     # Create mean from month to month yearly estimates
-    cols = ['Total Income', 'Realized Income', 'Expense', 'Taxes']
+    cols = ['Total Income', 'Realized Income', 'Expense + Loans', 'Expense', 'Taxes']
     summary[cols] = summary[cols].expanding().mean()
 
     # Calculate metrics
