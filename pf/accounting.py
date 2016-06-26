@@ -670,10 +670,14 @@ def summary_statement(networth=None, income=None, cashflow=None, limits=None):
         networth[['Assets', 'Debts', 'Net']],
         12.0 * pd.DataFrame(income['Revenue'].resample('M').sum().sum(axis=1), columns=['Total Income']),
         12.0 * pd.DataFrame(cashflow['Inflow'].resample('M').sum().sum(axis=1), columns=['Realized Income']),
-        12.0 * pd.DataFrame(cashflow['Outflow'].resample('M').sum().sum(axis=1), columns=['Expense + Loans']),
         12.0 * pd.DataFrame(
             cashflow['Outflow'].resample('M').sum().sum(axis=1) \
-            - cashflow[('Outflow', 'Operating', 'Loan Payments')].resample('M').sum()
+            - cashflow[('Outflow', 'Non-Operating', 'Purchased Investments')].resample('M').sum()
+            , columns=['Expense + Loans']),
+        12.0 * pd.DataFrame(
+            cashflow['Outflow'].resample('M').sum().sum(axis=1) \
+            - cashflow[('Outflow', 'Operating', 'Loan Payments')].resample('M').sum() \
+            - cashflow[('Outflow', 'Non-Operating', 'Purchased Investments')].resample('M').sum()
             , columns=['Expense']),
         12.0 * pd.DataFrame(income['Taxes'].resample('M').sum().sum(axis=1), columns=['Taxes']),
         pd.DataFrame(limits.sum(axis=1), columns=['Credit Line']),
