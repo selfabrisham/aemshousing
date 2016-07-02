@@ -150,7 +150,7 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
 
     return balance_sheets_df
 
-def calc_income(paychecks=None, transactions=None, category_dict=None):
+def calc_income(paychecks=None, transactions=None, category_dict=None, tax_type=None):
     """
     Calculate daily income of grouped revenue/expenses/taxes based on `category_dict`s from `paychecks` and `transactions`,
      returns a DataFrame.
@@ -187,7 +187,8 @@ def calc_income(paychecks=None, transactions=None, category_dict=None):
                 'source': 'paycheck',            # Optional string to select data source,  defaults to 'transactions'
                 'categories': {'Paycheck', ...}, # Required set of categories
                 'labels': set(),                 # Optional set of labels, defaults to set() if not passed in
-                'logic': ''                      # Optional 'not' string to set inverse of 'labels', defaults to ''
+                'logic': '',                     # Optional 'not' string to set inverse of 'labels', defaults to ''
+                'tax_type' ''                    # Optional string to set accound type ('realized' or 'unrealized'), defaults to 'realized'
             },
             'User Category': {...}
         },
@@ -220,6 +221,8 @@ def calc_income(paychecks=None, transactions=None, category_dict=None):
                     category_dict[k0][k1][k2]['logic'] = ''
                 if not v2.has_key('agg'):
                     category_dict[k0][k1][k2]['agg'] = np.ones(len(category_dict[k0][k1][k2]['categories']))
+                if not v2.has_key('tax_type'):
+                    category_dict[k0][k1][k2]['tax_type'] = 'realized'
 
     # Aggregate accounts based on category definition, via 3 level dictionary comprehension
     income_dict = {}
@@ -230,7 +233,7 @@ def calc_income(paychecks=None, transactions=None, category_dict=None):
                 if v2['source'] == 'transactions':
                     income_dict[(k0, k1, k2)] = transactions[
                         # If it is in the category
-                        (transactions['category'].isin(v2['categories'])) &
+                        (transactions['category'].isin(v2['categories']) & transactions['account'].isin(tax_type[v2['tax_type']])) &
                         (
                             # And if is has the correct label
                             (transactions['labels'].apply(
@@ -332,7 +335,7 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
 
     return income_statement_df
 
-def calc_cashflow(transactions=None, category_dict=None):
+def calc_cashflow(transactions=None, category_dict=None, tax_type=None):
     """
     Calculate daily cashflow of grouped inflow/outflow based on `category_dict`s from `transactions`, returns a DataFrame.
 
@@ -366,6 +369,7 @@ def calc_cashflow(transactions=None, category_dict=None):
                     'categories': {'Paycheck', ...}, # required set of categories
                     'labels': set(),                 # optional set of labels, defaults to set() if not passed in
                     'logic': ''                      # optional 'not' string to set inverse of 'labels', defaults to ''
+                    'tax_type' ''                    # Optional string to set accound type ('realized' or 'unrealized'), defaults to 'realized'
                 },
                 'User Category': {...}
             },
@@ -392,13 +396,15 @@ def calc_cashflow(transactions=None, category_dict=None):
                     category_dict[k0][k1][k2]['labels'] = set()
                 if not v2.has_key('logic'):
                     category_dict[k0][k1][k2]['logic'] = ''
+                if not v2.has_key('tax_type'):
+                    category_dict[k0][k1][k2]['tax_type'] = 'realized'
 
     # Aggregate transactions based on category definition, via 3 level dictionary comprehension
     #pylint: disable=cell-var-from-loop
     cashflow_dict = {
         (k0, k1, k2): transactions[
-            # If it is in the category
-            (transactions['category'].isin(v2['categories'])) &
+            # If it is in the category & in the tax type
+            (transactions['category'].isin(v2['categories']) & transactions['account'].isin(tax_type[v2['tax_type']])) &
             (
                 # And if is has the correct label
                 (transactions['labels'].apply(
