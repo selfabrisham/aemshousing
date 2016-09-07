@@ -233,16 +233,16 @@ def calc_income(paychecks=None, transactions=None, category_dict=None, tax_type=
                 if v2['source'] == 'transactions':
                     income_dict[(k0, k1, k2)] = transactions[
                         # If it is in the category
-                        (transactions['category'].isin(v2['categories']) & transactions['account'].isin(tax_type[v2['tax_type']])) &
+                        (transactions['Category'].isin(v2['categories']) & transactions['Account Name'].isin(tax_type[v2['tax_type']])) &
                         (
                             # And if is has the correct label
-                            (transactions['labels'].apply(
+                            (transactions['Labels'].apply(
                                 lambda x: x.isdisjoint(v2['labels']) if v2['logic'] else not x.isdisjoint(v2['labels'])
                             )) |
                             # Or it does not have any labels
-                            (transactions['labels'].apply(lambda x: v2['labels'] == set()))
+                            (transactions['Labels'].apply(lambda x: v2['labels'] == set()))
                         )
-                    ]['amount']
+                    ]['Amount']
                 else:
                     income_dict[(k0, k1, k2)] = (v2['agg'] * paychecks[list(v2['categories'])]).sum(axis=1)
 
@@ -404,16 +404,16 @@ def calc_cashflow(transactions=None, category_dict=None, tax_type=None):
     cashflow_dict = {
         (k0, k1, k2): transactions[
             # If it is in the category & in the tax type
-            (transactions['category'].isin(v2['categories']) & transactions['account'].isin(tax_type[v2['tax_type']])) &
+            (transactions['Category'].isin(v2['categories']) & transactions['Account Name'].isin(tax_type[v2['tax_type']])) &
             (
                 # And if is has the correct label
-                (transactions['labels'].apply(
+                (transactions['Labels'].apply(
                     lambda x: x.isdisjoint(v2['labels']) if v2['logic'] else not x.isdisjoint(v2['labels'])
                 )) |
                 # Or it does not have any labels
-                (transactions['labels'].apply(lambda x: v2['labels'] == set()))
+                (transactions['Labels'].apply(lambda x: v2['labels'] == set()))
             )
-        ]['amount']
+        ]['Amount']
         for k0, v0 in category_dict.iteritems()
         for k1, v1 in v0.iteritems()
         for k2, v2 in v1.iteritems()
@@ -572,6 +572,7 @@ def calculate_growth(net_worth=None, offsets=None):
         ('1 Yr', (pd.tseries.offsets.MonthEnd(-1 * 12),)),
         ('2 Yr', (pd.tseries.offsets.MonthEnd(-2 * 12),)),
         ('3 Yr', (pd.tseries.offsets.MonthEnd(-3 * 12),)),
+        ('4 Yr', (pd.tseries.offsets.MonthEnd(-4 * 12),)),
         ('5 Yr', (pd.tseries.offsets.MonthEnd(-5 * 12),)),
         ('Life', (pd.DateOffset(days=-(net_worth.index[-1] - net_worth.index[0]).days),))
     ]

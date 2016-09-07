@@ -115,7 +115,7 @@ def clean_transactions(transactions=None):
 
     return transactions
 
-def read_in_transactions(filepath='', cache=True):
+def read_in_transactions(filepath='', labels=None, cache=True):
     """
     Read in the data file containing all transaction details, this should be a json file from mint.com, or the function should
     overriden by the user.
@@ -133,51 +133,29 @@ def read_in_transactions(filepath='', cache=True):
     transactions_cache_file = os.path.splitext(filepath)[0] + '.csv'
     cached = os.path.exists(transactions_cache_file)
 
-    # Read in cached file if it exists
-    if cache and cached:
-        transactions = read_date_csv_file(transactions_cache_file)
-        transactions['labels'] = transactions['labels'].map(lambda x: set(ast.literal_eval(x)))
-        last_hash = transactions.ix[0, 'checksum']
-        transactions = transactions.drop('checksum', 1)
-    else:
-        last_hash = ''
-        transactions = None
+    # Read Transaction info
+    transactions = read_date_csv_file(transactions_cache_file)
 
-    # Read Input Transaction info hash
-    transaction_hash = checksum(filepath)
+    # Process labels
+    transactions['Labels'] = [{label for label in labels if label in str(transaction)} for transaction in transactions['Labels']]
 
-    # Read paycheck data if need be (not cached or update transactions)
-    if not cache or not cached or transaction_hash != last_hash:
+    # Remove duplicate transactions
+    #transactions = transactions[np.invert(transactions.isDuplicate)]
 
-        # Read Transaction info
-        transactions = pd.read_json(filepath, orient='records').set_index('date')
-        # Correct Dates for index
-        transactions.index = transactions.index.astype(str).to_datetime()
+    # Convert amount from dollar strings to floats
+    #transactions['amount'] = transactions['amount'].str.replace('$', '').str.replace(',', '').astype(float)
 
-        # Process labels
-        transactions['labels'] = [{label['name'] for label in transaction} for transaction in transactions['labels']]
+    # Set debit transactions as negative
+    transactions.loc[transactions['Transaction Type'] == 'debit', 'Amount'] = -1.0 * transactions.loc[transactions['Transaction Type'] == 'debit', 'Amount']
 
-        # Remove duplicate transactions
-        transactions = transactions[np.invert(transactions.isDuplicate)]
+    # Drop unnecessary columns
+    transactions = transactions.drop(['Notes', 'Transaction Type'], 1)
 
-        # Convert amount from dollar strings to floats
-        transactions['amount'] = transactions['amount'].str.replace('$', '').str.replace(',', '').astype(float)
+    # Fill NaNs
+    transactions = transactions.fillna(0.0)
 
-        # Set debit transactions as negative
-        transactions.loc[transactions.isDebit, 'amount'] = -1.0 * transactions.loc[transactions.isDebit, 'amount']
-
-        # Fill NaNs
-        transactions = transactions.fillna(0.0)
-
-        # Clean up transaction data by user
-        transactions = clean_transactions(transactions)
-
-        if cache:
-            transactions.ix[0, 'checksum'] = transaction_hash
-            transactions['labels'] = transactions['labels'].apply(list)
-            transactions.to_csv(transactions_cache_file)
-            transactions['labels'] = transactions['labels'].apply(set)
-            transactions = transactions.drop('checksum', 1)
+    # Clean up transaction data by user
+    transactions = clean_transactions(transactions)
 
     return transactions
 
