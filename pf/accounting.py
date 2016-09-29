@@ -705,9 +705,9 @@ def calc_metrics(summary=None, swr=0.04):
     Safe Withdrawl Expense = (swr * Net) / -Expense
     Safe Withdrawl Income = (swr * Net) / Realized Income
     Realized Income to Net = Realized Income / Net
-    Total Tax Rate = Taxes / Total Income
-    Realized Income Tax Rate = Taxes / Realized Income
-    Tax to Net = Taxes / Net
+    Total Tax Rate = -Taxes / Total Income
+    Realized Income Tax Rate = -Taxes / Realized Income
+    Tax to Net = -Taxes / Net
 
     The default SWR (Safe Withdrawl Rate) is 0.04.
 
@@ -727,9 +727,9 @@ def calc_metrics(summary=None, swr=0.04):
         'Safe Withdrawl Expense [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense'],
         'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Realized Income'],
         'Realized Income to Net [%]' : 100.0 * summary['Realized Income'] / summary['Net'],
-        'Total Tax Rate [%]' : 100.0 * summary['Taxes'] / summary['Total Income'],
-        'Realized Income Tax Rate [%]' : 100.0 * summary['Taxes'] / summary['Realized Income'],
-        'Tax to Net [%]' : 100.0 * summary['Taxes'] / summary['Net'],
+        'Total Tax Rate [%]' : -100.0 * summary['Taxes'] / summary['Total Income'],
+        'Realized Income Tax Rate [%]' : -100.0 * summary['Taxes'] / summary['Realized Income'],
+        'Tax to Net [%]' : -100.0 * summary['Taxes'] / summary['Net'],
     })
 
     return metrics

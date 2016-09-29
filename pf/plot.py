@@ -61,12 +61,15 @@ def timeseries(data, columns=None, title='', stacked=False, smooth=2, datapoints
     ax.spines['bottom'].set_position('zero')
     ax.spines['bottom'].set_color('none')
 
-    # Turn of yaxis ticks
+    # Turn on yaxis major ticks
+    ax.set_yticklabels(ax.get_yticks().tolist(), ha='left')
     ax.tick_params(
         axis='y', which='both',
         left='off', right='off',
-        labelleft='off', labelright='off'
+        labelleft='on', labelright='off',
+        direction='in', pad=-5
     )
+    ax.tick_params(axis='y', which='minor', bottom='off')
     # Turn on xaxis major ticks
     ax.tick_params(
         axis='x', which='both',
