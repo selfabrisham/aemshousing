@@ -553,6 +553,7 @@ def calculate_growth(net_worth=None, offsets=None):
         ('1 Yr', (pd.tseries.offsets.MonthEnd(-1 * 12),)),
         ('2 Yr', (pd.tseries.offsets.MonthEnd(-2 * 12),)),
         ('3 Yr', (pd.tseries.offsets.MonthEnd(-3 * 12),)),
+        ('4 Yr', (pd.tseries.offsets.MonthEnd(-4 * 12),)),
         ('5 Yr', (pd.tseries.offsets.MonthEnd(-5 * 12),)),
         ('Life', (pd.DateOffset(days=-(net_worth.index[-1] - net_worth.index[0]).days),))
     ]
@@ -700,14 +701,17 @@ def calc_metrics(summary=None, swr=0.04):
     Debt to Income = -Debts / Realized Income
     Debt Utilization = -Debts / Credit Line
     Profit Margin = (Realized Income + Expense) / Realized Income
-    Income Multiple [Yr] = Net / Realized Income
-    Expense Multiple [Yr] = Net / -Expense
-    Safe Withdrawl Expense = (swr * Net) / -Expense
-    Safe Withdrawl Income = (swr * Net) / Realized Income
+    Income Net Multiple [Yr] = Net / Realized Income
+    Expense Net Multiple [Yr] = Net / -Expense
+    SWR Expense Covered  = (swr * Net) / -Expense
+    SWR Income Covered  = (swr * Net) / Realized Income
     Realized Income to Net = Realized Income / Net
-    Total Tax Rate = -Taxes / Total Income
+    Total Income Tax Rate = -Taxes / Total Income
     Realized Income Tax Rate = -Taxes / Realized Income
     Tax to Net = -Taxes / Net
+    FI Amount = 25 * -Expense
+    FI Shortfall = Net - (25 * -Expense)
+    FI Percent = Net / (25 * -Expense)
 
     The default SWR (Safe Withdrawl Rate) is 0.04.
 
@@ -721,15 +725,18 @@ def calc_metrics(summary=None, swr=0.04):
         'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],
         'Debt to Income [%]' : 100.0 * -summary['Debts'] / summary['Realized Income'],
         'Debt Utilization [%]' : 100.0 * -summary['Debts'] / summary['Credit Line'],
+        'Income Net Multiple [Yr]' : summary['Net'] / summary['Realized Income'],
+        'Expense Net Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
         'Profit Margin [%]' : 100.0 * (summary['Realized Income'] + summary['Expense']) / summary['Realized Income'],
-        'Income Multiple [Yr]' : summary['Net'] / summary['Realized Income'],
-        'Expense Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
-        'Safe Withdrawl Expense [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense'],
-        'Safe Withdrawl Income [%]' : 100.0 * (swr * summary['Net']) / summary['Realized Income'],
+        'SWR Expense Covered [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense'],
+        'SWR Income Covered [%]' : 100.0 * (swr * summary['Net']) / summary['Realized Income'],
         'Realized Income to Net [%]' : 100.0 * summary['Realized Income'] / summary['Net'],
-        'Total Tax Rate [%]' : -100.0 * summary['Taxes'] / summary['Total Income'],
+        'Total Income Tax Rate [%]' : -100.0 * summary['Taxes'] / summary['Total Income'],
         'Realized Income Tax Rate [%]' : -100.0 * summary['Taxes'] / summary['Realized Income'],
         'Tax to Net [%]' : -100.0 * summary['Taxes'] / summary['Net'],
+        'FI Amount [$]' : 25.0 * -summary['Expense'],
+        'FI Shortfall [$]' : (25.0 * -summary['Expense']) - summary['Net'],
+        'FI Percent [%]' : 100.0 * summary['Net'] / (25.0 * -summary['Expense'])
     })
 
     return metrics
