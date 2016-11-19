@@ -670,10 +670,20 @@ def get_milestones(networth=None, milestones=None):
 
     return pd.DataFrame(milestone_data, columns=['Date', 'Milestone', 'Actual', 'Age', 'Years'])
 
-def summary_statement(networth=None, income=None, cashflow=None, limits=None):
+def summary_statement(networth=None, income=None, cashflow=None, limits=None, salestax=None):
     """
     Combine accounts, expenses, income, debt, etc. into one high level DataFrame
     """
+    # Estimate monthly sales tax spending
+    sales_tax_spending = cashflow[[
+        ('Outflow', 'Non-Operating', 'Discretionary'),
+        ('Outflow', 'Operating', 'Transportation')
+    ]].resample('M').sum().sum(axis=1)
+    # Get tax rate average
+    avg_sales_tax_percent = salestax.sum(1) / (salestax > 0).sum(1)
+    # Calculate dollar amount of sales tax paid
+    sales_tax_pay = (avg_sales_tax_percent * sales_tax_spending)
+
     summary = pd.concat([
         networth[['Assets', 'Debts', 'Net']],
         12.0 * pd.DataFrame(income['Revenue'].resample('M').sum().sum(axis=1), columns=['Total Income']),
@@ -689,6 +699,7 @@ def summary_statement(networth=None, income=None, cashflow=None, limits=None):
             , columns=['Expense']),
         12.0 * pd.DataFrame(income['Taxes'].resample('M').sum().sum(axis=1), columns=['Taxes']),
         pd.DataFrame(limits.sum(axis=1), columns=['Credit Line']),
+        12.0 * pd.DataFrame(sales_tax_pay, columns=['Sales Tax'])
     ], axis=1).dropna()
 
     return summary
@@ -700,15 +711,32 @@ def calc_metrics(summary=None, swr=0.04):
     Debt Ratio = -Debts / Assets
     Debt to Income = -Debts / Realized Income
     Debt Utilization = -Debts / Credit Line
+
     Profit Margin = (Realized Income + Expense) / Realized Income
+
     Income Net Multiple [Yr] = Net / Realized Income
     Expense Net Multiple [Yr] = Net / -Expense
+
     SWR Expense Covered  = (swr * Net) / -Expense
     SWR Income Covered  = (swr * Net) / Realized Income
+
     Realized Income to Net = Realized Income / Net
+
     Total Income Tax Rate = -Taxes / Total Income
     Realized Income Tax Rate = -Taxes / Realized Income
-    Tax to Net = -Taxes / Net
+    Income Tax to Net = -Taxes / Net
+    Income Tax to Expense = -Taxes / -Expense
+
+    Total Sales Tax Rate = -Taxes / Total Income
+    Realized Sales Tax Rate = -Taxes / Realized Income
+    Sales Tax to Net = -Taxes / Net
+    Sales Tax to Expense = -Taxes / -Expense
+
+    Total Tax Rate          = -(Taxes + Sales Tax) / Total Income
+    Realized Total Tax Rate = -(Taxes + Sales Tax) / Realized Income
+    Total Tax to Net        = -(Taxes + Sales Tax) / Net
+    Total Tax to Expense    = -(Taxes + Sales Tax) / -Expense
+
     FI Amount = 25 * -Expense
     FI Shortfall = Net - (25 * -Expense)
     FI Percent = Net / (25 * -Expense)
@@ -717,7 +745,7 @@ def calc_metrics(summary=None, swr=0.04):
 
     """
     # Create mean from month to month yearly estimates
-    cols = ['Total Income', 'Realized Income', 'Expense + Loans', 'Expense', 'Taxes']
+    cols = ['Total Income', 'Realized Income', 'Expense + Loans', 'Expense', 'Taxes', 'Sales Tax']
     summary[cols] = summary[cols].expanding().mean()
 
     # Calculate metrics
@@ -725,15 +753,32 @@ def calc_metrics(summary=None, swr=0.04):
         'Debt Ratio [%]' : 100.0 * -summary['Debts'] / summary['Assets'],
         'Debt to Income [%]' : 100.0 * -summary['Debts'] / summary['Realized Income'],
         'Debt Utilization [%]' : 100.0 * -summary['Debts'] / summary['Credit Line'],
+
         'Income Net Multiple [Yr]' : summary['Net'] / summary['Realized Income'],
         'Expense Net Multiple [Yr]' :  summary['Net'] / -summary['Expense'],
+
         'Profit Margin [%]' : 100.0 * (summary['Realized Income'] + summary['Expense']) / summary['Realized Income'],
+
         'SWR Expense Covered [%]' : 100.0 * (swr * summary['Net']) / -summary['Expense'],
         'SWR Income Covered [%]' : 100.0 * (swr * summary['Net']) / summary['Realized Income'],
+
         'Realized Income to Net [%]' : 100.0 * summary['Realized Income'] / summary['Net'],
+
         'Total Income Tax Rate [%]' : -100.0 * summary['Taxes'] / summary['Total Income'],
         'Realized Income Tax Rate [%]' : -100.0 * summary['Taxes'] / summary['Realized Income'],
-        'Tax to Net [%]' : -100.0 * summary['Taxes'] / summary['Net'],
+        'Income Tax to Net [%]' : -100.0 * summary['Taxes'] / summary['Net'],
+        'Income Tax to Expense [%]' : -100.0 * summary['Taxes'] / -summary['Expense'],
+
+        'Total Sales Tax Rate [%]' : -100.0 * summary['Sales Tax'] / summary['Total Income'],
+        'Realized Sales Tax Rate [%]' : -100.0 * summary['Sales Tax'] / summary['Realized Income'],
+        'Sales Tax to Net [%]' : -100.0 * summary['Sales Tax'] / summary['Net'],
+        'Sales Tax to Expense [%]' : -100.0 * summary['Sales Tax'] / -summary['Expense'],
+
+        'Total Tax Rate [%]'          : -100.0 * (summary['Taxes'] + summary['Sales Tax']) / summary['Total Income'],
+        'Realized Total Tax Rate [%]' : -100.0 * (summary['Taxes'] + summary['Sales Tax']) / summary['Realized Income'],
+        'Total Tax to Net [%]'        : -100.0 * (summary['Taxes'] + summary['Sales Tax']) / summary['Net'],
+        'Total Tax to Expense [%]'    : -100.0 * (summary['Taxes'] + summary['Sales Tax']) / -summary['Expense'],
+
         'FI Amount [$]' : 25.0 * -summary['Expense'],
         'FI Shortfall [$]' : (25.0 * -summary['Expense']) - summary['Net'],
         'FI Percent [%]' : 100.0 * summary['Net'] / (25.0 * -summary['Expense'])
