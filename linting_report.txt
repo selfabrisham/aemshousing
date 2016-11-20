@@ -1,20 +1,20 @@
 
 pf Linting Report
-2016-06-26 07:35:52 -0700
+2016-11-20 06:50:53 -0800
 =========================================
 
 ************* Module pf.accounting
-I:397, 0: Locally disabling cell-var-from-loop (W0640) (locally-disabled)
-I:599, 0: Locally disabling no-member (E1101) (locally-disabled)
+I:405, 0: Locally disabling cell-var-from-loop (W0640) (locally-disabled)
+I:609, 0: Locally disabling no-member (E1101) (locally-disabled)
 ************* Module pf.io
-I:195, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
-I:195, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
-I:195, 0: Locally disabling too-many-locals (R0914) (locally-disabled)
+I:236, 0: Locally disabling too-many-branches (R0912) (locally-disabled)
+I:236, 0: Locally disabling too-many-statements (R0915) (locally-disabled)
+I:236, 0: Locally disabling too-many-locals (R0914) (locally-disabled)
 
 
 Report
 ======
-676 statements analysed.
+665 statements analysed.
 
 Statistics by type
 ------------------
@@ -39,7 +39,7 @@ External dependencies
 
     matplotlib (pf.plot)
       \-patches (pf.plot)
-    numpy (pf.io)
+    numpy (pf.util)
     pandas (pf.io)
     pdfminer 
       \-converter (pf.io)
@@ -65,13 +65,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |840    |46.00 |836      |+4.00      |
+|code      |842    |43.51 |842      |=          |
 +----------+-------+------+---------+-----------+
-|docstring |477    |26.12 |477      |=          |
+|docstring |596    |30.80 |596      |=          |
 +----------+-------+------+---------+-----------+
-|comment   |249    |13.64 |249      |=          |
+|comment   |237    |12.25 |237      |=          |
 +----------+-------+------+---------+-----------+
-|empty     |260    |14.24 |260      |=          |
+|empty     |260    |13.44 |260      |=          |
 +----------+-------+------+---------+-----------+
 
 

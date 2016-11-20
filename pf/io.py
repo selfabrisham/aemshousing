@@ -21,10 +21,8 @@ from __future__ import division
 
 import re
 import os
-import ast
 import glob
 import cStringIO
-import numpy as np
 import pandas as pd
 
 from pdfminer.pdfparser import PDFParser
@@ -35,27 +33,91 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams
 
 from pf.constants import DATE_RE
-from pf.util import read_date_csv_file, checksum
+from pf.util import read_date_csv_file
 
 ################################################################################################################################
 # Account Functions
 ################################################################################################################################
 def clean_accounts(accounts=None):
     """
-    Clean account data for any reason necessary. This is called at the end of `read_in_accounts()`. This is optional and will
-    always need to be overriden by the user.
+    Clean account data for any user reason necessary. This is called at the end of `read_in_accounts()`. This is optional and
+    will always need to be overriden by the user.
+
+    After importing the module you may override the function with the following definition and assignment:
+    ```
+    import pf.io
+
+    def clean_accounts(accounts):
+        # Do something cleaning here
+        return accounts
+
+    # Override user functions
+    pf.io.clean_accounts = clean_accounts
+
+    accounts = pf.io.read_in_accounts('/path/to/accounts/file')
+
+    ```
+
     """
 
     return accounts
 
 def read_in_accounts(filepath=''):
     """
-    Read in the data file containing monlhty account balances, credit card limits, and miscallaneous loan.
+    Read in the data file containing monlhty account balances, credit card limits, and miscallaneous loans.
     This should be an simple excel with sheets for each section, or the function should overriden by the user.
+
+    The sheets should be in the following form:
+    ```
+    Accounts sheet:
+    ______________________________________________________________________________________________
+    |         |  Cash               | Credit            | Investment | Loan           | Property |
+    |---------|---------------------|-------------------|------------|----------------|----------|
+    |         | Ally Online Savings | BofA Cash Rewards | Motif      | Student Loan 1 | Car      |
+    |---------|---------------------|-------------------|------------|----------------|----------|
+    | 09/2016 |             1000.00 |           -500.00 |    5000.00 |      -10000.00 |  5000.00 |
+    |---------|---------------------|-------------------|------------|----------------|----------|
+    | 10/2016 |             2000.00 |           -550.00 |    6000.00 |       -9000.00 |  5000.00 |
+    |---------|---------------------|-------------------|------------|----------------|----------|
+    | 11/2016 |             3000.00 |           -450.00 |    7000.00 |       -8000.00 |  5000.00 |
+    |---------|---------------------|-------------------|------------|----------------|----------|
+    |_________|_____________________|___________________|____________|________________|__________|
+
+    Limits sheet:                                                     Loans sheet:
+    ________________________________________________                  ____________________________
+    |         | Credit            | Loan           |                  |         | Loan           |
+    |---------|-------------------|----------------|                  |---------|----------------|
+    |         | BofA Cash Rewards | Student Loan 1 |                  |         | 401(k) Loan    |
+    |---------|-------------------|----------------|                  |---------|----------------|
+    | 09/2016 |          -5000.00 |      -20000.00 |                  | 09/2016 |      -20000.00 |
+    |---------|-------------------|----------------|                  |---------|----------------|
+    | 10/2016 |          -5000.00 |      -20000.00 |                  | 10/2016 |      -19500.00 |
+    |---------|-------------------|----------------|                  |---------|----------------|
+    | 11/2016 |          -6000.00 |      -20000.00 |                  | 11/2016 |      -19000.00 |
+    |---------|-------------------|----------------|                  |---------|----------------|
+    |_________|___________________|________________|                  |_________|________________|
+
+    Sales Tax sheet:
+    __________________________________________
+    |         | Sales Tax   | Sales Tax      |
+    |---------|-------------|----------------|
+    |         | Location 1  | Location 2     |
+    |---------|-------------|----------------|
+    | 08/2016 |       7.75% |                |
+    |---------|-------------|----------------|
+    | 09/2016 |       7.75% |                |
+    |---------|-------------|----------------|
+    | 10/2016 |             |          8.00% |
+    |---------|-------------|----------------|
+    | 11/2016 |             |          8.00% |
+    |---------|-------------|----------------|
+    |_________|_____________|________________|
+
+    ```
 
     Example:
     ```
-    accounts, limits, loan, taxes = read_in_accounts('/path/to/estate.xlsx')
+    accounts, limits, loan, taxes, salestax = read_in_accounts('/path/to/estate.xlsx')
     ```
     """
 
@@ -68,11 +130,11 @@ def read_in_accounts(filepath=''):
     )
 
     # Separate out worksheet and fill NaNs
-    accounts = xlsx['accounts'].fillna(0.0)
-    limits = xlsx['limits'].fillna(0.0)
-    loan = xlsx['loan'].fillna(0.0)
-    incometaxes = xlsx['income taxes'].fillna(0.0)
-    salestax = xlsx['sales tax'].fillna(0.0)
+    accounts = xlsx['Accounts'].fillna(0.0)
+    limits = xlsx['Limits'].fillna(0.0)
+    loan = xlsx['Loans'].fillna(0.0)
+    incometaxes = xlsx['Income Taxes'].fillna(0.0)
+    salestax = xlsx['Sales Tax'].fillna(0.0)
 
     # Set Index to DatetimeIndex
     accounts.index = pd.to_datetime(accounts.index, format='%m/%Y').to_period('M').to_timestamp('M')
@@ -98,55 +160,56 @@ def read_in_accounts(filepath=''):
 ################################################################################################################################
 def clean_transactions(transactions=None):
     """
-    Cleans transaction data at the end of `read_in_transactions()`, this will always need to be overriden by the user.
+    Clean transaction data for any user reason necessary. This is called at the end of `read_in_transactions()`, this will
+    always need to be overriden by the user.
+
+    After importing the module you may override the function with the following definition and assignment:
+    ```
+    import pf.io
+
+    def clean_transactions(transactions):
+        # Do some cleaning here
+        return transactions
+
+    # Override user functions
+    pf.io.clean_transactions = clean_transactions
+
+    transactions = pf.io.read_in_transactions('/path/to/transactions/file')
+
     """
-
-    # Group Investments transactions together for simplicity
-    # transactions.loc[transactions['account'] == 'Motif Individual', 'merchant'] = 'Motif Individual'
-
-    # Remove Pending and Schedualed transactions
-    # drop = (
-    #     (transactions['account'] == 'Student Loan 1') | (transactions['account'] == 'Student Loan 2')
-    # ) & (transactions['omerchant'] != 'Payment')
-    # transactions = transactions[~drop]
-
-    # Rename Category
-    # transactions.loc[transactions['category'] == 'Transfer for Cash Spending', 'category'] = u'Cash Spending'
 
     return transactions
 
-def read_in_transactions(filepath='', labels=None, cache=True):
+def read_in_transactions(filepath='', labels=None):
     """
-    Read in the data file containing all transaction details, this should be a json file from mint.com, or the function should
-    overriden by the user.
+    Read in the data file containing all transaction details, this should be a `csv` file of transactions (e.g. `csv` exported
+    from mint.com) or the function should overriden by the user.
+
+    The `csv` file should be in the following form:
+    ```
+    Date, Description, Original Description, Amount, Transaction Type, Category, Account Name, Labels, Notes
+    2016-11-20, Trader Joe's, TRADER JOES #110, $23.40, debit, Groceries, Amex Blue Cash Everyday,,
+    ...
+    ```
 
     Example:
     ```
-    transactions = read_in_transactions('/path/to/transactions.json')
+    transactions = read_in_transactions('/path/to/transactions.csv')
     ```
-
-    See readme for example of [mint](mint.com) json export
 
     """
 
-    # Get filepaths
-    transactions_cache_file = os.path.splitext(filepath)[0] + '.csv'
-    cached = os.path.exists(transactions_cache_file)
-
     # Read Transaction info
-    transactions = read_date_csv_file(transactions_cache_file)
+    transactions = read_date_csv_file(filepath)
 
     # Process labels
-    transactions['Labels'] = [{label for label in labels if label in str(transaction)} for transaction in transactions['Labels']]
-
-    # Remove duplicate transactions
-    #transactions = transactions[np.invert(transactions.isDuplicate)]
-
-    # Convert amount from dollar strings to floats
-    #transactions['amount'] = transactions['amount'].str.replace('$', '').str.replace(',', '').astype(float)
+    transactions['Labels'] = [{label for label in labels
+                               if label in str(transaction)}
+                              for transaction in transactions['Labels']]
 
     # Set debit transactions as negative
-    transactions.loc[transactions['Transaction Type'] == 'debit', 'Amount'] = -1.0 * transactions.loc[transactions['Transaction Type'] == 'debit', 'Amount']
+    debit_index = transactions['Transaction Type'] == 'debit'
+    transactions.loc[debit_index, 'Amount'] = -1.0 * transactions.loc[debit_index, 'Amount']
 
     # Drop unnecessary columns
     transactions = transactions.drop(['Notes', 'Transaction Type'], 1)
@@ -335,10 +398,10 @@ def paycheck_parser(paychecks_dict=None):
 
 def read_in_paychecks(filepaths='', password='', parser=paycheck_parser, cache=True):
     """
-    Read in all the paychecks from a directory full of PDFs and returns DataFrame. If a password is supplied encrypted PDFs CAN
-    be read. PDFs are converted to text lines, which are assumed to be mostly tabular and converted to lists of lists using
-    multiple spaces as elimiters. Since PDFs are unstructured the parsing function will almost definetly need to be overriden
-    by the user.
+    Read in all the paychecks from a directory full of PDFs and return a DataFrame. If a password is supplied encrypted PDFs
+    *can* be read. PDFs are converted to text lines, which are assumed to be mostly tabular and converted to lists of lists
+    using multiple spaces as elimiters. Since PDFs are unstructured the parsing function will almost definetly need to be
+    overriden by the user.
 
     Note:
     Assumes PDF file names contain date.

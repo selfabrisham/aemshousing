@@ -188,7 +188,7 @@ def calc_income(paychecks=None, transactions=None, category_dict=None, tax_type=
                 'categories': {'Paycheck', ...}, # Required set of categories
                 'labels': set(),                 # Optional set of labels, defaults to set() if not passed in
                 'logic': '',                     # Optional 'not' string to set inverse of 'labels', defaults to ''
-                'tax_type' ''                    # Optional string to set accound type ('realized' or 'unrealized'), defaults to 'realized'
+                'tax_type' ''                    # Optional string for tax ('realized' or 'unrealized'), defaults to 'realized'
             },
             'User Category': {...}
         },
@@ -232,9 +232,11 @@ def calc_income(paychecks=None, transactions=None, category_dict=None, tax_type=
 
                 if v2['source'] == 'transactions':
                     income_dict[(k0, k1, k2)] = transactions[
-                        # If it is in the category
-                        (transactions['Category'].isin(v2['categories']) & transactions['Account Name'].isin(tax_type[v2['tax_type']])) &
                         (
+                            # If it is in the category
+                            transactions['Category'].isin(v2['categories'])
+                            & transactions['Account Name'].isin(tax_type[v2['tax_type']])
+                        ) & (
                             # And if is has the correct label
                             (transactions['Labels'].apply(
                                 lambda x: x.isdisjoint(v2['labels']) if v2['logic'] else not x.isdisjoint(v2['labels'])
@@ -366,10 +368,10 @@ def calc_cashflow(transactions=None, category_dict=None, tax_type=None):
             'Operating': {
                 # Paychecks
                 'Technical Services': {
-                    'categories': {'Paycheck', ...}, # required set of categories
-                    'labels': set(),                 # optional set of labels, defaults to set() if not passed in
-                    'logic': ''                      # optional 'not' string to set inverse of 'labels', defaults to ''
-                    'tax_type' ''                    # Optional string to set accound type ('realized' or 'unrealized'), defaults to 'realized'
+                    'categories': {'Paycheck', }, # Required set of categories
+                    'labels': set(),              # Optional set of labels, defaults to set() if not passed in
+                    'logic': ''                   # Optional 'not' string to set inverse of 'labels', defaults to ''
+                    'tax_type' ''                 # Optional string for tax ('realized' or 'unrealized'), defaults to 'realized'
                 },
                 'User Category': {...}
             },
