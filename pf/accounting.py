@@ -140,7 +140,7 @@ def balance_sheet(balance=None, period=datetime.datetime.now().year):
         balance_df = balance_df.combine_first(l0_totals)
 
         # Update columns with period
-        balance_df.columns = pd.MultiIndex.from_product([p, balance_df.columns])
+        balance_df.columns = pd.MultiIndex.from_product([[p], balance_df.columns])
 
         # Add to main list
         balance_sheets.append(balance_df)
@@ -327,7 +327,7 @@ def income_statement(income=None, period=datetime.datetime.now().year, nettax=No
         income_df = pd.concat([p_income, net])
 
         # Update columns with period
-        income_df.columns = pd.MultiIndex.from_product([p, income_df.columns])
+        income_df.columns = pd.MultiIndex.from_product([[p], income_df.columns])
 
         # Add to main list
         income_statements.append(income_df)
@@ -488,7 +488,7 @@ def cashflow_statement(cashflow=None, period=datetime.datetime.now().year):
         cashflow_df = cashflow_df.combine_first(l0_totals)
 
         # Update columns with period
-        cashflow_df.columns = pd.MultiIndex.from_product([p, cashflow_df.columns])
+        cashflow_df.columns = pd.MultiIndex.from_product([[p], cashflow_df.columns])
 
         # Add to main list
         cashflow_statements.append(cashflow_df)
