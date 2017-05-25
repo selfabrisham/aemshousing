@@ -29,6 +29,50 @@ from statsmodels.tsa.arima_model import ARIMA
 import pf.util
 from pf.constants import ARIMA_ORDERS
 
+
+################################################################################################################################
+# Forecasting Helpers
+################################################################################################################################
+def increase_pay(
+        paycheck,
+        gross_increase,
+        retire_contribution_percent,
+        employer_match_percent,
+        employer_retire_percent
+    ):
+    """
+    Estimate pay increase affect of paycheck values.
+
+    Paycheck is a DataFrame containing at least the following columns:
+        gross
+        net
+        pretex retire
+        pretax detuct
+        posttax loan
+        employer_match
+        employer_retire
+        other
+        tax
+        taxable gross
+        taxable net
+
+    """
+    # Calculate last tax percent
+    percent_tax = paycheck['tax'] / paycheck['taxable gross']
+    # Increased pay and retirement
+    paycheck['gross'] = (1.0 + gross_increase) * paycheck['gross']
+    paycheck['pretax retire'] = -retire_contribution_percent * paycheck['gross']
+    # Recalculate taxable gross and then tax
+    paycheck['taxable gross'] = paycheck[['gross', 'pretax deduct', 'pretax retire']].sum(axis=1)
+    paycheck['tax'] = percent_tax * paycheck['taxable gross']
+    # Recalculate net
+    paycheck['net'] = paycheck[['gross', 'pretax deduct', 'pretax retire', 'posttax loan', 'tax','other']].sum(axis=1)
+    # Recalculate employer match
+    paycheck['employer_match'] = employer_match_percent * paycheck['gross']
+    paycheck['employer_retire'] = employer_retire_percent * paycheck['gross']
+
+    return paycheck
+
 ################################################################################################################################
 # Assumption Based Forecasting
 ################################################################################################################################

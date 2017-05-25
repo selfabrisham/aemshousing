@@ -23,6 +23,7 @@ import re
 import os
 import glob
 import cStringIO
+import numpy as np
 import pandas as pd
 
 from pdfminer.pdfparser import PDFParser
@@ -225,6 +226,68 @@ def read_in_transactions(filepath='', labels=None):
 ################################################################################################################################
 # Paycheck Functions
 ################################################################################################################################
+
+def set_paycheck_sign(paychecks, paycheck_negative_categories):
+    """
+    Set the sign of each paycheck category. Paycheck reading make all values absolute for ease,
+    negative signed values will need to be reset. `paycheck_negative_categories` is a list of column names.
+
+    """
+
+    # Set sign of each column
+    sign = pd.Series(np.ones(len(paychecks.columns)), index=paychecks.columns)
+    sign[paycheck_negative_categories] = -1
+    paychecks = sign * paychecks
+
+    return paychecks
+
+def standardize_paycheck(paychecks, categories):
+    """
+    Convert user's paycheck categories into standardized categories used in the rest of processing.
+
+    Categories is a dictionary of user category keys with standard category values.  Duplicate
+    standard categories will be summed. A standard category value of "drop" will ignore that user
+    category in resulting output.
+
+    Standard Categories should be:
+    salary
+    straight
+    overtime
+    bonus
+    paid time off
+    holiday
+    reimbursement
+    401k loan
+    pre tax retire
+    post tax retire
+    pre tax deductions
+    post tax deductions
+    total post tax
+    totat pre tax
+    gross
+    state tax
+    federal tax
+    total tax
+    net
+    employer match
+    employer retire
+
+    """
+
+    # Create empty DataFrame
+    std_paychecks = pd.DataFrame([], index=paychecks.index)
+    for col in paychecks.columns:
+        std_col = categories[col]
+        if std_col != "drop":
+            # If category already exists add to category
+            if std_col in std_paychecks.columns:
+                std_paychecks[std_col] += paychecks[col]
+            # Or create new category
+            else:
+                std_paychecks[std_col] = paychecks[col]
+
+    return std_paychecks
+
 def paycheck_parser(paychecks_dict=None):
     """
     User defined function to convert dictonary of paycheck list of lists into a DataFrame. You could always replace of the whole
