@@ -1,14 +1,22 @@
-# pfcompute
-Personal Finance library for the Computationally Curious.
+# AESM Housing
+
+Affordable Ethical and More Sustainable housing is a complete package for managing personal finance, creating pooled finance groups for housing investment, and management of a housing design and build that incoporates the latest of sustainability research. 
 
 ## Description
-`pfcompute` is a python library for computationally exploring personal finance.  The library provides a computing environment with data structures, common equations/algorithms and convenience functions to calculate, analyze and visualize existing personal finance data. It is *not* meant to be a full service financial app or replace any software used to manage personal finances.  It does *not* collect data. However, once data is provided, it allows a much larger degree of freedom in processing and analyzing financial data than typical personal finance apps supply.
+
+The aims of AEMS housing are:
+* To create an easy to use and open source personal finance tool that can help people to manage saving for a house. 
+* Facilitate sharing of data with permission to create pooled finance and make suggestions for land purchase for design and development. 
+* Integrate hazards and risk into land and consider desirable infrastructure that considers each of the users definition of an adequate standard of living. 
+* Assist to manage material purchasing and the design and build of housing for each pooled finance group based on the latest research and standards in sustainability science. 
+
+The current library provides a computing environment with data structures, common equations/algorithms and convenience functions to calculate, analyze and visualize existing personal finance data. It is *not* currently a full service financial and sustainable housing design and development application.  The application does not collect data. Data can be provided to identify pooled finance options among the community of users, but otherwise this application is not intended to collect data.
 
 ### Interactive Computing
 While this library may be used internally to other software, it was intended to be used in a interactive computing fashion with software such as [jupyter](https://jupyter.org).  This type of environment, along with the library, provides a quick and easy way to explore complex data, relations and algorithms.
 
 ### Data Sources
-Since `pfcompute` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. [mint](https://mint.com), [personalcapital](https://personalcapital.com), [ynab](https://youneedabudget.com), [yodlee](https://yodlee.com), a bank, etc.).  It is left up to the user to obtain this data however they wish.  There are three main data sources assumed to exist by the library:
+Since `aemshousing` does not aggregate or collect it's own data, it requires data to be provided by some other means (e.g. [mint](https://mint.com), [personalcapital](https://personalcapital.com), [ynab](https://youneedabudget.com), [yodlee](https://yodlee.com), a bank, etc.).  It is left up to the user to obtain this data however they wish.  There are three main data sources assumed to exist by the library:
 
 1. Accounts
 2. Transactions
@@ -17,7 +25,7 @@ Since `pfcompute` does not aggregate or collect it's own data, it requires data 
 They can really be in any format (`xls(x)`, `csv`, `json`, `pdf`) as long as the user writes some method to interpret the data.  The data [format](#data-format) and some collection [ideas](#data-ideas) are described below.
 
 ## Features
-The following checklist describes the current (`[x]`) and future (`[ ]`) capabilities of `pfcompute` and what is currently (:pencil:) being worked on:
+The following checklist describes the current (`[x]`) and future (`[ ]`) capabilities of `aemshousing` and what is currently (:pencil:) being worked on:
 
 - [x] Data input
     - [x] Import convenience functions
@@ -167,7 +175,7 @@ This is the most difficult one... You will have to get dirty and roll your own c
 Good Luck :)
 
 ## Dependencies
-Generally, and for *code-to-be*, `pfcompute` is intended to be used within the [anaconda distribution](https://www.continuum.io/why-anaconda) and its [packages](https://docs.continuum.io/anaconda/pkg-docs) plus a few other libraries (i.e. [`tabulate`](https://pypi.python.org/pypi/tabulate), [`pdfminer`](https://pypi.python.org/pypi/pdfminer/)).
+Generally, and for *code-to-be*, `aemshousing` is intended to be used within the [anaconda distribution](https://www.continuum.io/why-anaconda) and its [packages](https://docs.continuum.io/anaconda/pkg-docs) plus a few other libraries (i.e. [`tabulate`](https://pypi.python.org/pypi/tabulate), [`pdfminer`](https://pypi.python.org/pypi/pdfminer/)).
 
 Specifically, it currently uses:
 
@@ -179,4 +187,4 @@ Specifically, it currently uses:
 - statsmodels
 
 ## License
-[MIT](https://github.com/tmthydvnprt/pfcompute/blob/master/LICENSE)
+[AGPL](https://github.com/selfabrisham/aemshousing/blob/master/LICENSE)
